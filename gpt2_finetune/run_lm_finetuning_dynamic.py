@@ -39,12 +39,11 @@ from args import get_parser
 from data_utils import MAX_ROBERTA_LENGTH
 from fairseq.models.roberta import RobertaModel
 from fairseq.optim.adafactor import Adafactor
-from style_dataset import (AuthorDatasetText, AuthorSRLDatasetText,
+from style_dataset import (InverseParaphraseDatasetText,
                            ParaphraseDatasetText)
 from transformers import (WEIGHTS_NAME, AdamW, GPT2Config, GPT2LMHeadModel,
                           GPT2Tokenizer, get_linear_schedule_with_warmup)
 
-from checkpoint_model import GPT2SegmentedModel, GPT2CheckpointedLMHeadModel
 from utils import RobertaToGPT2, get_new_update_type, init_roberta_gpt2
 
 try:
@@ -69,7 +68,7 @@ SPECIAL_TOKENS = {
 
 def load_and_cache_examples(args, tokenizer, roberta, evaluate=False):
     if args.context_input_type.endswith("_srl_input") or args.context_input_type.endswith("_roberta_input"):
-        dataset = AuthorSRLDatasetText(
+        dataset = InverseParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
             model_type=args.model_type,
@@ -85,16 +84,6 @@ def load_and_cache_examples(args, tokenizer, roberta, evaluate=False):
             roberta=roberta,
             evaluate=evaluate,
             split="dev" if evaluate else "train"
-        )
-    else:
-        dataset = AuthorDatasetText(
-            tokenizer=tokenizer,
-            args=args,
-            model_type=args.model_type,
-            roberta=roberta,
-            evaluate=evaluate,
-            split="dev" if evaluate else "train",
-            block_size=args.block_size
         )
     return dataset
 

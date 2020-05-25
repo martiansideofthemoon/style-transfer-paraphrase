@@ -123,7 +123,7 @@ class ParaphraseDatasetText(Dataset):
         }
 
 
-class AuthorSRLDatasetText(Dataset):
+class InverseParaphraseDatasetText(Dataset):
     def __init__(
         self, tokenizer, args, model_type, roberta, evaluate=False, split="train"
     ):

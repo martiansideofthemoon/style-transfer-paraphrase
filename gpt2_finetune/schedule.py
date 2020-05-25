@@ -4,10 +4,7 @@ import itertools
 import os
 import subprocess
 
-from hyperparameters_config import (newsela, para_paraphrase, paraphrase,
-                                    shakespeare, new_style_dataset,
-                                    shakespeare_unsupervised, simplewiki,
-                                    style_transfer, style_transfer_sentence)
+from hyperparameters_config import (paraphrase, inverse_paraphrase)
 
 
 class SafeDict(dict):
@@ -34,8 +31,8 @@ other_dependencies = {
 }
 
 
-top_details = "GPT2-medium model for shakespeare."
-hyperparameters = new_style_dataset
+top_details = "GPT2-large model for shakespeare."
+hyperparameters = inverse_paraphrase
 
 run_id = int(get_run_id())
 key_hyperparameters = [x[0] for x in hyperparameters]

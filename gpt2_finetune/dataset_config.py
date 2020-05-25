@@ -34,7 +34,7 @@ BASE_SIMPLEWIKI_CONFIG = {
 }
 
 DATASET_CONFIG = {
-    "/mnt/nfs/work1/miyyer/datasets/paranmt": {
+    "paranmt": {
         "keys": [
             {"key": "sent1_tokens", "position": 0, "tokenize": True, "metadata": False},
             {"key": "sent2_tokens", "position": 1, "tokenize": True, "metadata": False},
@@ -44,18 +44,18 @@ DATASET_CONFIG = {
             {"key": "ed_bucket", "position": 7, "tokenize": False, "metadata": True}
         ]
     },
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_lendiff_less_3_english_only": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_lendiff_less_5_english_only": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_lendiff_less_5_english_only_truncate_300000": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/no_trigram_filter/filter_lendiff_less_5_english_only_truncate_74554": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_kt_less_0": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_kt_less_0.5": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_and_kt_less_precision_less_0.0_0.25": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_and_kt_less_precision_less_0.0_0.5": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_and_kt_less_precision_less_0.0_0.25_no_czech": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_and_kt_less_precision_less_0.0_0.5_no_czech": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/paranmt/filter_and_kt_less_precision_less_lendiff_less_0.0_0.5_5_english_only": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/newsela/newsela_sentences": {
+    "paranmt/filter_lendiff_less_3_english_only": BASE_CONFIG,
+    "paranmt/filter_lendiff_less_5_english_only": BASE_CONFIG,
+    "paranmt/filter_lendiff_less_5_english_only_truncate_300000": BASE_CONFIG,
+    "paranmt/no_trigram_filter/filter_lendiff_less_5_english_only_truncate_74554": BASE_CONFIG,
+    "paranmt/filter_kt_less_0": BASE_CONFIG,
+    "paranmt/filter_kt_less_0.5": BASE_CONFIG,
+    "paranmt/filter_and_kt_less_precision_less_0.0_0.25": BASE_CONFIG,
+    "paranmt/filter_and_kt_less_precision_less_0.0_0.5": BASE_CONFIG,
+    "paranmt/filter_and_kt_less_precision_less_0.0_0.25_no_czech": BASE_CONFIG,
+    "paranmt/filter_and_kt_less_precision_less_0.0_0.5_no_czech": BASE_CONFIG,
+    "paranmt/filter_and_kt_less_precision_less_lendiff_less_0.0_0.5_5_english_only": BASE_CONFIG,
+    "newsela/newsela_sentences": {
         "keys": [
             {"key": "sent1_tokens", "position": 0, "tokenize": True, "metadata": False},
             {"key": "sent2_tokens", "position": 1, "tokenize": True, "metadata": False},
@@ -64,7 +64,7 @@ DATASET_CONFIG = {
             {"key": "doc_id", "position": 4, "tokenize": False, "metadata": True},
         ]
     },
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/shakespeare/supervised": {
+    "shakespeare/supervised": {
         "keys": [
             {"key": "sent1_tokens", "position": 0, "tokenize": True, "metadata": False},
             {"key": "sent2_tokens", "position": 1, "tokenize": True, "metadata": False},
@@ -72,7 +72,7 @@ DATASET_CONFIG = {
             {"key": "ed_score", "position": 3, "tokenize": False, "metadata": True}
         ]
     },
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/shakespeare/supervised_filtered": {
+    "shakespeare/supervised_filtered": {
         "keys": [
             {"key": "sent1_tokens", "position": 0, "tokenize": True, "metadata": False},
             {"key": "sent2_tokens", "position": 1, "tokenize": True, "metadata": False},
@@ -81,40 +81,40 @@ DATASET_CONFIG = {
         ]
     },
     # Simplewiki configurations
-    "/mnt/nfs/work1/miyyer/datasets/simplewiki": BASE_SIMPLEWIKI_CONFIG,
-    "/mnt/nfs/work1/miyyer/datasets/wikilarge": BASE_SIMPLEWIKI_CONFIG,
+    "simplewiki": BASE_SIMPLEWIKI_CONFIG,
+    "wikilarge": BASE_SIMPLEWIKI_CONFIG,
     # HP Fan-Fiction configurations
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/author_data/authors_1M_tokens_37_classes_srl_arg0_arg1_single_sentence": {
+    "author_data/authors_1M_tokens_37_classes_srl_arg0_arg1_single_sentence": {
         "max_dense_length": 4
     },
     # Shakespeare unsupervised data
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/shakespeare/unsupervised_filtered": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/shakespeare/unsupervised_prior": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/shakespeare/unsupervised_prior_detokenize": BASE_CONFIG,
+    "shakespeare/unsupervised_filtered": BASE_CONFIG,
+    "shakespeare/unsupervised_prior": BASE_CONFIG,
+    "shakespeare/unsupervised_prior_detokenize": BASE_CONFIG,
     # Shakespeare + AAE + english tweets
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/shakespeare_aae_tweets": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_joyce_congress-bills": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_switchboard": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/politeness/politeness": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/formality/formality": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/formality/formality_prior": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/formality/formality_prior2_lowercase": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/formality/formality_prior_detokenize": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/gender/gender": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/political-slant/political-slant": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_switchboard_coha_3_bins_lyrics_full": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/aae": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/bible": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/romantic-poetry": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/switchboard": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/english_tweets": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/lyrics_full": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/joyce": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/congress-bills": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/shakespeare": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/coha_3_bins_1810s-1820s": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/coha_3_bins_1890s-1900s": BASE_CONFIG,
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/dataset_pools/coha_3_bins_1990s-2000s": BASE_CONFIG
+    "dataset_pools/shakespeare_aae_tweets": BASE_CONFIG,
+    "dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_joyce_congress-bills": BASE_CONFIG,
+    "dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_switchboard": BASE_CONFIG,
+    "politeness/politeness": BASE_CONFIG,
+    "formality/formality": BASE_CONFIG,
+    "formality/formality_prior": BASE_CONFIG,
+    "formality/formality_prior2_lowercase": BASE_CONFIG,
+    "formality/formality_prior_detokenize": BASE_CONFIG,
+    "gender/gender": BASE_CONFIG,
+    "political-slant/political-slant": BASE_CONFIG,
+    "dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_switchboard_coha_3_bins_lyrics_full": BASE_CONFIG,
+    "dataset_pools/aae": BASE_CONFIG,
+    "dataset_pools/bible": BASE_CONFIG,
+    "dataset_pools/romantic-poetry": BASE_CONFIG,
+    "dataset_pools/switchboard": BASE_CONFIG,
+    "dataset_pools/english_tweets": BASE_CONFIG,
+    "dataset_pools/lyrics_full": BASE_CONFIG,
+    "dataset_pools/joyce": BASE_CONFIG,
+    "dataset_pools/congress-bills": BASE_CONFIG,
+    "dataset_pools/shakespeare": BASE_CONFIG,
+    "dataset_pools/coha_3_bins_1810s-1820s": BASE_CONFIG,
+    "dataset_pools/coha_3_bins_1890s-1900s": BASE_CONFIG,
+    "dataset_pools/coha_3_bins_1990s-2000s": BASE_CONFIG
 }
 
 BASE_HP_CONFIG = {

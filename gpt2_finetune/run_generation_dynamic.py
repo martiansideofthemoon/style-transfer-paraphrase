@@ -31,7 +31,7 @@ from tqdm import tqdm
 from args import get_parser
 from data_utils import MAX_ROBERTA_LENGTH
 from fairseq.models.roberta import RobertaModel
-from style_dataset import (AuthorDatasetText, AuthorSRLDatasetText,
+from style_dataset import (InverseParaphraseDatasetText,
                            ParaphraseDatasetText)
 from transformers import GPT2Config, GPT2LMHeadModel, GPT2Tokenizer
 from utils import bpe_to_srl, class_number_to_str, decode_roberta, init_roberta_gpt2, recall
@@ -56,7 +56,7 @@ def set_seed(args):
 
 def load_and_cache_examples(args, tokenizer, roberta):
     if args.context_input_type.endswith("_srl_input") or args.context_input_type.endswith("_roberta_input"):
-        dataset = AuthorSRLDatasetText(
+        dataset = InverseParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
             model_type=args.model_type,
@@ -72,16 +72,6 @@ def load_and_cache_examples(args, tokenizer, roberta):
             roberta=roberta,
             evaluate=True,
             split=args.eval_split
-        )
-    else:
-        dataset = AuthorDatasetText(
-            tokenizer=tokenizer,
-            args=args,
-            model_type=args.model_type,
-            roberta=roberta,
-            evaluate=True,
-            split=args.eval_split,
-            block_size=args.block_size
         )
     return dataset
 
