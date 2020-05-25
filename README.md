@@ -2,11 +2,21 @@
 
 This is a part of the supplementary material accompanying our EMNLP 2020 submission ("<title>").
 
+## Appendix
+
+We provided a detailed appendix in `appendix.pdf` in the root folder of this paper. This appendix has important hyperparameter choices, our survey of evaluations used in prior work, more comparisons with prior work, details of our dataset collection process, style-wise results of our system on our proposed dataset and lots of generated outputs.
+
+## Dataset Samples
+
+We present 1000 sentences from each our of our eleven diverse styles in `data_samples`.
+
 ## Source Code
 
 Note: **This source code is very preliminary and is for reference only**. This codebase was used to train all the GPT2 models in our paper (both paraphrase and inverse paraphrase models). While the codebase has configurations for many complex preliminary experiments (which did not work out), we've set the configurations to the models eventually presented in the paper.
 
 Note that this codebase does not contain dataset preprocessing or postprocessing scripts which are necessary to run experiments in the paper. We plan to make a proper Github release of the source code, datasets, model checkpoints, model outputs and a live demo of our system after the acceptance of the paper to ensure the results are fully reproducible and extendable.
+
+Our source code is located in `gpt2_finetune`. Additionally, we use a modified version of the Transformers library in `transformers`. The only modification made is to run the style code model ablation study, which is a minor modification to `transformers/transformers/modeling_gpt2.py`.
 
 #### Installation
 
