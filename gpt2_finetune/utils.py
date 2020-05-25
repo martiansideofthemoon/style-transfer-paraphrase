@@ -822,29 +822,3 @@ def beam_search(model, length, context, style_content_vectors, segments, eos_tok
         ]
 
         return final_input_ids, [_score_fn(fb[0]) for fb in final_beams]
-
-
-# https://github.com/ngram-lab/storyteller/blob/master/data/parallel.py#L103
-class StaticDataParallel(nn.DataParallel):
-    """
-    A modified version of torch.nn.DataParallel which replicates to the devices
-    only once at the beginning, reducing the overhead of each batch. Named
-    StaticDataParallel since the model is static.
-    This optimization is only useful during inference. If you need similar
-    functionality during training, then torch.nn.DataParallel should be used
-    instead.
-    """
-
-    def __init__(self, module, device_ids=None, output_device=None, dim=0):
-        super(StaticDataParallel, self).__init__(
-            module, device_ids=device_ids, output_device=output_device, dim=dim
-        )
-
-        self.replicas = []
-
-    def replicate(self, module, device_ids):
-        if not self.replicas:
-            # Create the replicas once
-            self.replicas = super().replicate(self.module, self.device_ids)  # type: ignore
-
-        return self.replicas[: len(device_ids)]

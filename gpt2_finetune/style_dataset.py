@@ -413,29 +413,3 @@ class InverseParaphraseDatasetText(Dataset):
                 else "author_target",
             ),
         }
-
-
-class AuthorDatasetText(Dataset):
-    def __init__(
-        self,
-        tokenizer,
-        args,
-        model_type,
-        roberta,
-        evaluate=False,
-        split="train",
-        block_size=512,
-    ):
-        raise NotImplementedError(
-            "This Dataset is moved to gpt2_finetune.legacy.style_dataset"
-        )
-
-    def __len__(self):
-        raise NotImplementedError(
-            "This Dataset is moved to gpt2_finetune.legacy.style_dataset"
-        )
-
-    def __getitem__(self, item):
-        raise NotImplementedError(
-            "This Dataset is moved to gpt2_finetune.legacy.style_dataset"
-        )

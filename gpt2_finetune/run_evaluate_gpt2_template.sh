@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --job-name=eval_gpt2_{job_id}
-#SBATCH -o /gpt2_finetune/logs/log_eval_{job_id}.txt
+#SBATCH -o gpt2_finetune/logs/log_eval_{job_id}.txt
 #SBATCH --time=167:00:00
 #SBATCH --partition=1080ti-long
 #SBATCH --gres=gpu:1
