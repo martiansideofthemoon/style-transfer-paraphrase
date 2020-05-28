@@ -8,7 +8,11 @@ We provided a detailed appendix in `appendix.pdf` in the root folder of this pap
 
 ## Dataset Samples
 
-We present 1000 sentences from each our of our eleven diverse styles in `data_samples`.
+We present 1000 sentences from each our of our eleven diverse styles in `data_samples`. **WARNING**: These samples have not been filtered by profanity / toxicity and some sentences contain expletives or disturbing content. For the purpose of peer-review, we wanted to preserve our original data distribution as far as possible. We recognize this issue with the dataset and the potential harms it could have. We plan to discuss this at length before the eventual release and at the very least plan to add a datasheet discussing these limitations at length.
+
+## Style Transferred Outputs
+
+We style transfer each of the 1000 sentences in **Dataset Samples** to every other style and provide the outputs in `outputs`. These HTML files are best viewed using a browser. **WARNING**: These samples have not been filtered by profanity / toxicity and some sentences might contain expletives or disturbing content since the original dataset contained them. For the purpose of peer-review, we wanted to preserve our original outputs as far as possible. We recognize this issue with the dataset and the potential harms it could have. We plan to discuss this at length before the eventual demo of our system, perhaps adding toxicity filters to our system.
 
 ## Source Code
 
