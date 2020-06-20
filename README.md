@@ -1,6 +1,6 @@
-# Appendix, Source Code and Data Samples
+# Appendix, Data Samples, Style Transferred Outputs and Source Code
 
-This is a part of the supplementary material accompanying our EMNLP 2020 submission ("<title>").
+This is the README of the supplementary material accompanying our EMNLP 2020 submission ("Reformulating Unsupervised Style Transfer as Paraphrase Generation"). If you are looking at the data file, read **Dataset Samples** and **Style Transferred Outputs**. If you are referring to the source code, look at **Source Code**.
 
 ## Appendix
 
@@ -12,11 +12,11 @@ We present 1000 sentences from each our of our eleven diverse styles in `data_sa
 
 ## Style Transferred Outputs
 
-We style transfer each of the 1000 sentences in **Dataset Samples** to every other style and provide the outputs in `outputs`. These HTML files are best viewed using a browser. **WARNING**: These samples have not been filtered by profanity / toxicity and some sentences might contain expletives or disturbing content since the original dataset contained them. For the purpose of peer-review, we wanted to preserve our original outputs as far as possible. We recognize this issue with the dataset and the potential harms it could have. We plan to discuss this at length before the eventual demo of our system, perhaps adding toxicity filters to our system.
+We style transfer each of the 1000 sentences in **Dataset Samples** to every other style and provide the outputs in `outputs`. These HTML files are best viewed using a browser. **WARNING**: These samples have not been filtered by profanity / toxicity and some sentences might contain expletives or disturbing content since the original dataset contained them. For the purpose of peer-review, we wanted to preserve our original outputs as far as possible. We recognize this issue and plan to discuss this at length before releasing these outputs publicly.
 
 ## Source Code
 
-Note: **This source code is very preliminary and is for reference only**. This codebase was used to train all the GPT2 models in our paper (both paraphrase and inverse paraphrase models). While the codebase has configurations for many complex preliminary experiments (which did not work out), we've set the configurations to the models eventually presented in the paper.
+Note: **This source code is for reference only**. This codebase was used to train all the GPT2 models in our paper (both paraphrase and inverse paraphrase models). While the codebase has configurations for many complex preliminary experiments (which did not work out), we've set the configurations to the models eventually presented in the paper.
 
 Note that this codebase does not contain dataset preprocessing or postprocessing scripts which are necessary to run experiments in the paper. We plan to make a proper Github release of the source code, datasets, model checkpoints, model outputs and a live demo of our system after the acceptance of the paper to ensure the results are fully reproducible and extendable.
 
