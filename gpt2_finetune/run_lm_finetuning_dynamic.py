@@ -192,8 +192,6 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
         def parameter_filter(x):
             lambda x: "style_from_content" not in x
 
-    is_adversarial_training = roberta_gpt2.roberta_training and args.context_input_type.endswith("_none") and args.switch_type != "constant"
-
     generator_grouped_parameters = [
         {
             'params': [
@@ -211,50 +209,14 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
         }
     ]
 
-    if args.optimizer == "adam":
-        optimizer = {
-            "generator": AdamW(generator_grouped_parameters, lr=float(args.learning_rate.split(",")[0]), eps=args.adam_epsilon)
-        }
-        scheduler = {
-            "generator": get_linear_schedule_with_warmup(optimizer["generator"],
-                                                        num_warmup_steps=args.warmup_steps // 2 if is_adversarial_training else args.warmup_steps,
-                                                        num_training_steps=t_total // 2 if is_adversarial_training else t_total)
-        }
-    elif args.optimizer == "adafactor":
-        optimizer = {
-            "generator": Adafactor(generator_grouped_parameters, warmup_init=True)
-        }
-        scheduler = None
-    elif args.optimizer == "adafactor-external":
-        optimizer = {
-            "generator": Adafactor(
-                generator_grouped_parameters,
-                lr=float(args.learning_rate.split(",")[0])
-            )
-        }
-        scheduler = None
-    elif args.optimizer == "adafactor-external2":
-        optimizer = {
-            "generator": Adafactor(
-                generator_grouped_parameters,
-                lr=float(args.learning_rate.split(",")[0]),
-                warmup_init=True
-            )
-        }
-        scheduler = None
-        # scheduler = {
-        #     "generator": get_linear_schedule_with_warmup(optimizer["generator"],
-        #                                                 num_warmup_steps=args.warmup_steps // 2 if is_adversarial_training else args.warmup_steps,
-        #                                                 num_training_steps=t_total // 2 if is_adversarial_training else t_total)
-        # }
-
-    if is_adversarial_training:
-        # Setup new optimizer and scheduler here
-        discriminator_parameters = [p for n, p in model.named_parameters() if "style_from_content" in n]
-        optimizer["discriminator"] = AdamW(discriminator_parameters, lr=float(args.learning_rate.split(",")[1]), eps=args.adam_epsilon)
-        scheduler["discriminator"] = get_linear_schedule_with_warmup(optimizer["discriminator"],
-                                                                     num_warmup_steps=args.warmup_steps // 2,
-                                                                     num_training_steps=t_total // 2)
+    optimizer = {
+        "generator": AdamW(generator_grouped_parameters, lr=float(args.learning_rate.split(",")[0]), eps=args.adam_epsilon)
+    }
+    scheduler = {
+        "generator": get_linear_schedule_with_warmup(optimizer["generator"],
+                                                     num_warmup_steps=args.warmup_steps,
+                                                     num_training_steps=t_total)
+    }
 
     if args.fp16:
         try:
@@ -290,9 +252,6 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
     global_step = 0
     loss_metrics = {
         "lm": {"current": 0.0, "previous": 0.0},
-        "style_from_style": {"current": 0.0, "previous": 0.0},
-        "style_from_content_generator": {"current": 0.0, "previous": 0.0},
-        "style_from_content_discriminator": {"current": 0.0, "previous": 0.0},
         "total": {"current": 0.0, "previous": 0.0}
     }
     model.zero_grad()
@@ -309,21 +268,7 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
         for step, batch in enumerate(epoch_iterator):
 
             loss = roberta_gpt2(batch, update_type=update_type)
-
-            if roberta_gpt2.roberta_training and args.context_input_type.endswith("_none"):
-                if update_type == "generator":
-                    loss["total"] = \
-                        generator_loss_constants[0] * loss["lm"] + \
-                        generator_loss_constants[1] * loss["style_from_style"] + \
-                        generator_loss_constants[2] * loss["style_from_content_generator"]
-                else:
-                    loss["total"] = loss["style_from_content_discriminator"]
-            elif roberta_gpt2.roberta_training and not args.context_input_type.endswith("_none"):
-                loss["total"] = \
-                    generator_loss_constants[0] * loss["lm"] + \
-                    generator_loss_constants[1] * loss["style_from_content_discriminator"]
-            else:
-                loss["total"] = loss["lm"]
+            loss["total"] = loss["lm"]
 
             if args.n_gpu > 1:
                 for k, v in loss.items():
@@ -351,8 +296,7 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
 
                 # Update the generator or the discriminator optimizer
                 optimizer[update_type].step()
-                if scheduler:
-                    scheduler[update_type].step()
+                scheduler[update_type].step()
 
                 model.zero_grad()
                 global_step += 1
@@ -367,13 +311,7 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
                         for key, value in results.items():
                             tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
 
-                    if scheduler:
-                        tb_writer.add_scalar('lr_generator', scheduler["generator"].get_lr()[0], global_step)
-                    else:
-                        pass
-
-                    if is_adversarial_training:
-                        tb_writer.add_scalar('lr_discriminator', scheduler["discriminator"].get_lr()[0], global_step)
+                    tb_writer.add_scalar('lr_generator', scheduler["generator"].get_lr()[0], global_step)
 
                     for metric_type, metric_vals in loss_metrics.items():
                         tb_writer.add_scalar(
@@ -432,24 +370,14 @@ def evaluate(args, roberta_gpt2, tokenizer, prefix=""):
     eval_loss = 0.0
     nb_eval_steps = 0
 
-    total_correct_style = 0
     total_instances = 0
-
-    total_correct_content = 0
-    total_token_instances = 0
 
     roberta_gpt2.eval()
 
     for batch in tqdm(eval_dataloader, desc="Evaluating"):
-        curr_loss, style_from_style_info, style_from_content_info = roberta_gpt2.evaluate(batch)
+        curr_loss = roberta_gpt2.evaluate(batch)
         eval_loss += curr_loss
-
-        total_correct_style += style_from_style_info["correct"]
         total_instances += batch["author_target"].shape[0]
-
-        total_correct_content += style_from_content_info["discriminator_correct"]
-        total_token_instances += style_from_content_info["discriminator_total"]
-
         nb_eval_steps += 1
 
     eval_loss = eval_loss / nb_eval_steps
@@ -458,9 +386,6 @@ def evaluate(args, roberta_gpt2, tokenizer, prefix=""):
     result = {
         "perplexity": perplexity
     }
-
-    result["accuracy"] = "%.4f, (%d / %d)" % (float(total_correct_style) / float(total_instances), total_correct_style, total_instances)
-    result["accuracy_tokens"] = "%.4f, (%d / %d)" % (float(total_correct_content) / float(total_token_instances), total_correct_content, total_token_instances)
 
     output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
     with open(output_eval_file, "w") as writer:

@@ -12,11 +12,6 @@ def get_parser(parser_type, model_classes=None, all_models=None):
     parser.add_argument("--roberta_layer", type=int, default=-1)
     parser.add_argument("--roberta_ckpt_file", type=str, default="checkpoint_best.pt")
 
-    parser.add_argument("--content_aggregation", default=None, type=int, required=True,
-                        help="The content aggregation hyperparameter used in the pretrained style disentangler.")
-    parser.add_argument("--content_aggregation_type", default="single", type=str,
-                        help="The content aggregation type is used to decide method used to aggregate the content vectors.")
-
     parser.add_argument('--context_type', type=str, default='style_content', help='the kind of context vectors to use')
     parser.add_argument('--extra_embedding_dim', type=int, default=1536,
                         help="Size of linear layer used for projecting extra embeddings.")
@@ -43,7 +38,6 @@ def get_parser(parser_type, model_classes=None, all_models=None):
     parser.add_argument("--roberta_input_type", type=str, default="variable_nofilter")
 
     parser.add_argument("--global_dense_feature_list", type=str, default="none")
-    parser.add_argument("--context_noise", type=str, default="none")
     parser.add_argument("--specific_author_train", type=str, default="-1")
 
     if parser_type == "finetuning":
@@ -111,7 +105,6 @@ def get_parser(parser_type, model_classes=None, all_models=None):
         parser.add_argument('--server_port', type=str, default='', help="For distant debugging.")
 
         parser.add_argument('--switch_type', type=str, default="constant", help="Type of switching between generator and discriminator")
-        parser.add_argument('--adversarial_loss_type', type=str, default="maximize_all_probs", help="Type of generative adversarial loss")
         parser.add_argument("--learning_rate", default="5e-5", type=str,
                             help="The initial learning rate for Adam.")
         parser.add_argument("--generator_loss_constants", default="1,1,1", type=str,

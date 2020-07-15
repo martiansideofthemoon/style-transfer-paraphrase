@@ -144,13 +144,6 @@ class InverseParaphraseDatasetText(Dataset):
 
         global_dense_feature_list = args.global_dense_feature_list
 
-        if evaluate is False and args.context_noise != "none":
-            self.context_noise_fn = partial(
-                np.random.binomial, n=1, p=float(args.context_noise.split("_")[1])
-            )
-        else:
-            self.context_noise_fn = None
-
         cached_features_file = os.path.join(
             data_dir, model_type + "_cached_lm_" + split
         )
@@ -384,14 +377,6 @@ class InverseParaphraseDatasetText(Dataset):
                 )
         else:
             global_dense_vectors = np.zeros((1, 768), dtype=np.float32)
-
-        if self.context_noise_fn is not None:
-            to_replace = self.context_noise_fn(size=init_context_size)
-            random_tokens = np.random.randint(0, 50262, size=init_context_size)
-            sentence[:init_context_size] = (
-                sentence[:init_context_size] * (1 - to_replace)
-                + random_tokens * to_replace
-            )
 
         return {
             "sentence": torch.tensor(sentence),

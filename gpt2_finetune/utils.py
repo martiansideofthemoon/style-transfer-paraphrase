@@ -6,7 +6,6 @@ import torch.nn.functional as F
 
 import numpy as np
 
-from fairseq.models.roberta import RobertaModel
 from collections import namedtuple
 
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
@@ -106,163 +105,18 @@ def init_roberta_gpt2(roberta, checkpoint_dir, args, model_class, tokenizer_clas
     else:
         tokenizer = None
 
-    # Reload the new RoBERTa checkpoint in case RoBERTa weights were not fixed
-    if args.roberta_weights != "fixed":
-        logger.info("Reloading new RoBERTa checkpoint in %s" % checkpoint_dir)
-        roberta = RobertaModel.from_pretrained(
-            checkpoint_dir,
-            checkpoint_file="roberta.pt",
-            data_name_or_path=args.data_dir + "-bin"
-        )
-        roberta.cuda()
-        roberta.eval()
-
     return RobertaToGPT2(args=args, roberta=roberta, gpt2=model, evaluation=evaluation), tokenizer
 
-
-class GPT2Generator(object):
-    def __init__(self, model_path, upper_length="eos", beam_size=1, top_p=0.0):
-        model_class, tokenizer_class = MODEL_CLASSES["gpt2"]
-        self.model_path = model_path
-        self.args = torch.load("{}/training_args.bin".format(self.model_path))
-        self.modify_args(upper_length, beam_size, top_p)
-        self.config = DATASET_CONFIG[self.args.data_dir]
-        update_config(self.args, self.config)
-
-        if self.args.global_dense_feature_list != "none" and not self.args.context_input_type.endswith("_paraphrase"):
-            with open("{}-bin/label/dict.txt".format(self.args.data_dir)) as f:
-                author_target_dict = f.read().strip().split("\n")
-                author_target_dict = {
-                    x.split()[0]: i
-                    for i, x in enumerate(author_target_dict)
-                    if not x.startswith("madeupword")
-                }
-
-            self.author_target_dict = author_target_dict
-            self.reverse_author_target_dict = {
-                v: k for k, v in self.author_target_dict.items()
-            }
-
-            self.global_dense_features = []
-            for gdf in self.args.global_dense_feature_list.split(","):
-                with open(
-                    "{}/{}_dense_vectors.pickle".format(self.args.data_dir, gdf), "rb"
-                ) as f:
-                    vector_data = pickle.load(f)
-
-                final_vectors = {}
-                for k, v in vector_data.items():
-                    final_vectors[self.author_target_dict[k]] = v["sum"] / v["total"]
-
-                self.global_dense_features.append((gdf, final_vectors))
-
-        self.roberta_gpt2, self.tokenizer = init_roberta_gpt2(roberta=None,
-                                                              checkpoint_dir=model_path,
-                                                              args=self.args,
-                                                              model_class=model_class,
-                                                              tokenizer_class=tokenizer_class,
-                                                              evaluation=True)
-
-    def modify_args(self, upper_length, beam_size, top_p):
-        args = self.args
-        args.upper_length = upper_length
-        args.roberta_weights = "fixed"
-        args.stop_token = "eos" if upper_length == "eos" else None
-        args.beam_size = beam_size
-        args.num_samples = 1
-        args.temperature = 0
-        args.top_p = top_p
-        args.top_k = 1
-        args.device = torch.cuda.current_device()
-
-    def generate_batch(self, contexts, global_dense_features=None, get_scores=False, interpolation=None):
-        args = self.args
-        tokenizer = self.tokenizer
-        instances = []
-
-        if global_dense_features is None:
-            global_dense_features = [None for _ in contexts]
-
-        for context, gdf in zip(contexts, global_dense_features):
-            context_ids = tokenizer.convert_tokens_to_ids(tokenizer.tokenize(context))
-
-            # NOTE - For model_110, use the older version of the code
-            # The following code is only compatible with the newer models
-            instance = Instance(
-                self.args, self.config,
-                {"sent1_tokens": context_ids, "sent2_tokens": context_ids}
-            )
-            instance.preprocess(tokenizer)
-
-            if gdf is not None and self.args.global_dense_feature_list != "none":
-                if self.global_dense_features:
-                    global_dense_vectors = np.array(
-                        [x[1][gdf] for x in self.global_dense_features],
-                        dtype=np.float32,
-                    )
-                else:
-                    global_dense_vectors = np.zeros((2, 20), dtype=np.float32)
-                    global_dense_vectors[0, gdf["f1_bucket"]] = 1
-                    global_dense_vectors[1, gdf["ed_bucket"] + 10] = 1
-            else:
-                global_dense_vectors = np.zeros((1, 768), dtype=np.float32)
-
-            instance.gdv = global_dense_vectors
-            instances.append(instance)
-
-        output, _, scores = self.roberta_gpt2.generate(
-            roberta_sentences=torch.tensor([np.zeros((1, 512), dtype=np.float32)]).to(args.device),
-            gpt2_sentences=torch.tensor([inst.sentence for inst in instances]).to(args.device),
-            segments=torch.tensor([inst.segment for inst in instances]).to(args.device),
-            global_dense_vectors=torch.tensor([inst.gdv for inst in instances]).to(args.device),
-            init_context_size=instances[0].init_context_size,
-            eos_token_id=tokenizer.eos_token_id,
-            get_scores=get_scores,
-            interpolation=interpolation
-        )
-
-        all_output = []
-        for out_num in range(len(output)):
-            instance = instances[out_num]
-            curr_out = output[out_num, instance.init_context_size:].tolist()
-
-            if tokenizer.eos_token_id in curr_out:
-                curr_out = curr_out[:curr_out.index(tokenizer.eos_token_id)]
-
-            if self.args.upper_length.startswith("same"):
-                extra = int(self.args.upper_length.split("_")[-1])
-                curr_out = curr_out[:len(instance.sent1_tokens) + extra]
-
-            all_output.append(
-                tokenizer.decode(curr_out, clean_up_tokenization_spaces=True, skip_special_tokens=True)
-            )
-
-        return all_output, scores
-
-    def generate(self, context, global_dense_features=None, get_scores=False, interpolation=None):
-        return self.generate_batch([context],
-                                   [global_dense_features],
-                                   get_scores=get_scores,
-                                   interpolation=interpolation)[0]
 
 class RobertaToGPT2(nn.Module):
     def __init__(self, args, roberta, gpt2, evaluation=False):
         super(RobertaToGPT2, self).__init__()
         self.args = args
-        self.roberta_extractor = RobertaExtractor(args, roberta, evaluation)
-        self.roberta_training = False
-
-        if args.roberta_weights != "fixed":
-            logger.info("RoBERTa weights will be finetuned during training")
-            self.roberta_training = True
-            self.roberta_extractor.setup_roberta_training()
-
         self.gpt2 = gpt2
 
     def forward(self, batch, update_type="generator"):
         args = self.args
         gpt2 = self.gpt2
-        roberta_extractor = self.roberta_extractor
 
         roberta_sentences = batch["roberta_sentence"].to(args.device)
         sentences = batch["sentence"].to(args.device)
@@ -271,35 +125,36 @@ class RobertaToGPT2(nn.Module):
         author_targets = batch["author_target"].to(args.device)
         global_dense_vectors = batch["global_dense_vectors"].to(args.device)
 
-        roberta_outputs = roberta_extractor.get_style_content(
-            roberta_sentences, global_dense_vectors, author_targets, update_type
-        )
+        if args.global_dense_feature_list == "none":
+            prefix_input_vectors = None
+        else:
+            prefix_input_vectors = global_dense_vectors
 
         gpt2.train()
         with torch.set_grad_enabled(update_type == "generator"):
-            outputs = gpt2(
-                input_ids=sentences,
-                token_type_ids=segments,
-                labels=labels,
-                prefix_input_vectors=roberta_outputs[0]
-            )
+            if prefix_input_vectors is None:
+                outputs = gpt2(
+                    input_ids=sentences,
+                    token_type_ids=segments,
+                    labels=labels
+                )
+            else:
+                outputs = gpt2(
+                    input_ids=sentences,
+                    token_type_ids=segments,
+                    labels=labels,
+                    prefix_input_vectors=prefix_input_vectors
+                )
 
         loss = {
-            "lm": outputs[0],
-            "style_from_style": roberta_outputs[1]["loss"],
-            "style_from_content_generator": roberta_outputs[2]["generator_loss"],
-            "style_from_content_discriminator": roberta_outputs[2]["discriminator_loss"],
+            "lm": outputs[0]
         }
-
-        # to see if gradients are flowing, check this
-        # torch.autograd.grad(outputs[0], roberta_extractor.roberta.model.decoder.sentence_encoder.layers[0].fc1.weight)
 
         return loss
 
     def evaluate(self, batch):
         args = self.args
         gpt2 = self.gpt2
-        roberta_extractor = self.roberta_extractor
 
         roberta_sentences = batch["roberta_sentence"].to(args.device)
         sentences = batch["sentence"].to(args.device)
@@ -308,26 +163,38 @@ class RobertaToGPT2(nn.Module):
         author_targets = batch["author_target"].to(args.device)
         global_dense_vectors = batch["global_dense_vectors"].to(args.device)
 
-        roberta_outputs = roberta_extractor.get_style_content(roberta_sentences, global_dense_vectors, author_targets)
+        if args.global_dense_feature_list == "none":
+            prefix_input_vectors = None
+        else:
+            prefix_input_vectors = global_dense_vectors
 
         with torch.no_grad():
-            outputs = gpt2(
-                input_ids=sentences,
-                token_type_ids=segments,
-                labels=labels,
-                prefix_input_vectors=roberta_outputs[0]
-            )
+            if prefix_input_vectors is None:
+                outputs = gpt2(
+                    input_ids=sentences,
+                    token_type_ids=segments,
+                    labels=labels
+                )
+            else:
+                outputs = gpt2(
+                    input_ids=sentences,
+                    token_type_ids=segments,
+                    labels=labels,
+                    prefix_input_vectors=prefix_input_vectors
+                )
             lm_loss = outputs[0]
 
-        return lm_loss.mean().item(), roberta_outputs[1], roberta_outputs[2]
+        return lm_loss.mean().item()
 
     def generate(self, roberta_sentences, gpt2_sentences, segments, global_dense_vectors=None,
                  init_context_size=1, eos_token_id=None, get_scores=False, interpolation=None):
         args = self.args
         gpt2 = self.gpt2
-        roberta_extractor = self.roberta_extractor
 
-        style_content_vectors, _, _ = roberta_extractor.get_style_content(roberta_sentences, global_dense_vectors)
+        if args.global_dense_feature_list == "none":
+            style_content_vectors = None
+        else:
+            style_content_vectors = global_dense_vectors
 
         generation_length = None if self.args.stop_token == "eos" else len(gpt2_sentences[0]) - init_context_size
         dense_length = 0 if style_content_vectors is None else len(style_content_vectors[0])
@@ -359,237 +226,6 @@ class RobertaToGPT2(nn.Module):
                 interpolation=interpolation
             )
         return out, dense_length, scores
-
-
-class RobertaExtractor(nn.Module):
-    def __init__(self, args, roberta, evaluation):
-        super(RobertaExtractor, self).__init__()
-        self.args = args
-        self.roberta = roberta
-        # Cache variables to speed up some computations
-        self.agg_indices = None
-        self.extra_seq_vectors = {}
-
-        self.extra_style = {}
-        self.extra_content = {}
-
-        self.roberta_training = False
-        self.evaluation = evaluation
-        self.func_mapping = {
-            "zero": torch.zeros_like,
-            "random": torch.rand_like,
-            "first": lambda x: x[0:1].expand(x.shape)
-        }
-        self.default_style_from_style = {
-            "loss": torch.tensor(0.0),
-            "correct": 0
-        }
-        self.default_style_from_content = {
-            "generator_loss": torch.tensor(0.0),
-            "discriminator_loss": torch.tensor(0.0),
-            "discriminator_correct": 0,
-            "discriminator_total": 1
-        }
-
-    def setup_roberta_training(self):
-        args = self.args
-
-        if not self.evaluation:
-            self.roberta.train()
-            num_classes = int(args.data_dir.split("_")[args.data_dir.split("_").index("classes") - 1])
-            self.roberta.model.register_classification_head(
-                "style_from_style_classification_head",
-                num_classes=num_classes
-            )
-            self.roberta.model.register_token_classification_head(
-                "style_from_content_token_classification_head",
-                num_classes=num_classes
-            )
-            self.roberta.cuda()
-
-        self.roberta_training = True
-
-    def aggregate(self, content_vectors):
-        content_aggregation = self.args.content_aggregation
-        content_aggregation_type = self.args.content_aggregation_type
-
-        if content_aggregation_type == "single":
-            # Pick out evenly spaced vectors as an estimate of content
-            if self.agg_indices is None:
-                self.agg_indices = [
-                    i for i in range(content_vectors.shape[1]) if i % content_aggregation == 0
-                ]
-            content_agg_vectors = content_vectors[:, self.agg_indices, :]
-        elif content_aggregation_type == "bow":
-            # Use bag of words as an estimate of content
-            batch_size, seq_length, hidden_size = content_vectors.shape
-
-            if seq_length % content_aggregation != 0:
-                desired_shape = (batch_size, content_aggregation - seq_length % content_aggregation, hidden_size)
-
-                if desired_shape not in self.extra_seq_vectors:
-                    # pad content vectors with extra zeros
-                    self.extra_seq_vectors[desired_shape] = torch.zeros(
-                        size=desired_shape,
-                        dtype=content_vectors.dtype,
-                        device=content_vectors.device
-                    )
-                content_vectors = torch.cat([content_vectors, self.extra_seq_vectors[desired_shape]], dim=1)
-
-            # reshape the content_vectors tensor and use BoW style summation
-            reshaped_content_vectors = content_vectors.reshape(batch_size, -1, content_aggregation, hidden_size)
-            content_agg_vectors = reshaped_content_vectors.sum(dim=2)
-
-        return content_agg_vectors
-
-    def choose_context(self, style_vector, content_agg_vectors):
-        context_type = self.args.context_type
-        if context_type == "style":
-            # style-only context
-            style_content_vectors = style_vector.expand(content_agg_vectors.shape)
-        elif context_type == "content":
-            # content-only context
-            style_content_vectors = content_agg_vectors
-        elif context_type in ["first_content", "zero_content", "random_content"]:
-            # content-only context
-            if content_agg_vectors.shape not in self.extra_content:
-                content_type = context_type.split("_")[0]
-                self.extra_content[content_agg_vectors.shape] = self.func_mapping[content_type](content_agg_vectors)
-
-            style_content_vectors = self.extra_content[content_agg_vectors.shape]
-        elif context_type.endswith("_style_real_content"):
-            # real content vectors but modified and fixed style vectors
-            # useful for ablation experiments checking if style vectors are being utilized
-            expanded_style_vector = style_vector.expand(content_agg_vectors.shape)
-            if expanded_style_vector.shape not in self.extra_style:
-                # check if the fixed style vector has already been cached
-                style_type = context_type.split("_")[0]
-                assert style_type in ["zero", "random", "first"]
-                self.extra_style[expanded_style_vector.shape] = self.func_mapping[style_type](expanded_style_vector)
-            # concatenate fake style with real content
-            style_content_vectors = torch.cat([
-                self.extra_style[expanded_style_vector.shape],
-                content_agg_vectors
-            ], dim=2)
-        elif context_type.startswith("real_style_"):
-            # real style vectors but modified and fixed content vectors
-            # useful for ablation experiments checking how the style vectors are being utilized
-            if content_agg_vectors.shape not in self.extra_content:
-                # check if the fixed content vector has already been cached
-                content_type = context_type.split("_")[2]
-                assert content_type in ["zero", "random", "first"]
-                self.extra_content[content_agg_vectors.shape] = self.func_mapping[content_type](content_agg_vectors)
-            # concatenate real style with fake content
-            style_content_vectors = torch.cat([
-                style_vector.expand(content_agg_vectors.shape),
-                self.extra_content[content_agg_vectors.shape]
-            ], dim=2)
-        elif context_type == "style_content":
-            style_content_vectors = torch.cat([
-                style_vector.expand(content_agg_vectors.shape),
-                content_agg_vectors
-            ], dim=2)
-        else:
-            raise Exception("Invalid context type")
-        return style_content_vectors
-
-    def get_style_content(self, roberta_sentences, global_dense_vectors=None,
-                          author_targets=None, update_type="generator"):
-        args = self.args
-        default_style_from_style = self.default_style_from_style
-        default_style_from_content = self.default_style_from_content
-
-        if args.content_aggregation >= roberta_sentences.shape[1]:
-            if args.global_dense_feature_list == "none":
-                return None, default_style_from_style, default_style_from_content
-            else:
-                return global_dense_vectors, default_style_from_style, default_style_from_content
-
-        roberta_layer = args.roberta_layer
-
-        with torch.set_grad_enabled(self.roberta_training and not self.evaluation and update_type == "generator"):
-            features, extra = self.roberta.model(
-                roberta_sentences.long(),
-                features_only=True,
-                return_all_hiddens=roberta_layer != -1
-            )
-
-        if roberta_layer != -1:
-            features = extra["inner_states"][roberta_layer].transpose(0, 1)
-
-        style_vector = features[:, 0:1, :]
-        content_vectors = features[:, 1:, :]
-
-        content_agg_vectors = self.aggregate(content_vectors)
-        style_content_vectors = self.choose_context(style_vector, content_agg_vectors)
-
-        if (self.roberta_training or self.evaluation) and (author_targets is not None):
-            with torch.set_grad_enabled(update_type == "generator"):
-                style_from_style_info = self.get_style_style_info(features, author_targets)
-        else:
-            style_from_style_info = default_style_from_style
-
-        if self.roberta_training and (author_targets is not None):
-            style_from_content_info = self.get_style_content_info(content_agg_vectors, author_targets)
-        else:
-            style_from_content_info = default_style_from_content
-
-        if args.global_dense_feature_list == "none":
-            return style_content_vectors, style_from_style_info, style_from_content_info
-        else:
-            all_dense_vectors = torch.cat([global_dense_vectors, style_content_vectors], dim=1)
-            return all_dense_vectors, style_from_style_info, style_from_content_info
-
-    def get_style_style_info(self, features, author_targets):
-        model = self.roberta.model
-
-        style_from_style_logits = model.classification_heads["style_from_style_classification_head"](features)
-        style_from_style_loss = F.nll_loss(
-            F.log_softmax(style_from_style_logits, dim=-1, dtype=torch.float32),
-            author_targets,
-            reduction='mean',
-        )
-
-        accuracy = torch.sum(torch.argmax(style_from_style_logits, dim=1) == author_targets).item()
-
-        style_from_style_info = {
-            "loss": style_from_style_loss,
-            "correct": accuracy
-        }
-
-        return style_from_style_info
-
-    def get_style_content_info(self, content_agg_vectors, author_targets):
-        model = self.roberta.model
-
-        style_from_content_logits = model.classification_heads["style_from_content_token_classification_head"](content_agg_vectors)
-
-        style_from_content_logprobs = F.log_softmax(
-            style_from_content_logits.view(-1, style_from_content_logits.size(-1)),
-            dim=-1,
-            dtype=torch.float32
-        )
-        author_targets_expanded = author_targets.unsqueeze(-1).expand(style_from_content_logits.shape[:2]).reshape(-1)
-
-        style_from_content_info = {}
-
-        style_from_content_info["discriminator_loss"] = F.nll_loss(
-            style_from_content_logprobs,
-            author_targets_expanded,
-            reduction='mean',
-        )
-
-        style_from_content_info["discriminator_correct"] = \
-            torch.sum(torch.argmax(style_from_content_logprobs, dim=1) == author_targets_expanded).item()
-        style_from_content_info["discriminator_total"] = author_targets_expanded.shape[0]
-
-        if self.args.adversarial_loss_type == "negative_cross_entropy":
-            style_from_content_info["generator_loss"] = -1 * style_from_content_info["discriminator_loss"]
-        else:
-            # maximize all log probabilities equally
-            style_from_content_info["generator_loss"] = -1 * style_from_content_logprobs.mean()
-
-        return style_from_content_info
 
 
 def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):
@@ -625,11 +261,17 @@ def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')
 
 def get_logits(model, iteration, generated, segments, style_content_vectors, past):
     if iteration == 0:
-        logits, past = model(
-            input_ids=generated,
-            token_type_ids=segments,
-            prefix_input_vectors=style_content_vectors
-        )
+        if style_content_vectors is None:
+            logits, past = model(
+                input_ids=generated,
+                token_type_ids=segments
+            )
+        else:
+            logits, past = model(
+                input_ids=generated,
+                token_type_ids=segments,
+                prefix_input_vectors=style_content_vectors
+            )
     else:
         # used the cached representations to speed up decoding
         logits, past = model(
@@ -638,6 +280,7 @@ def get_logits(model, iteration, generated, segments, style_content_vectors, pas
             past=past
         )
     return logits, past
+
 
 def sample_sequence(model, length, context, style_content_vectors, segments, eos_token_id,
                     num_samples=1, temperature=1, top_k=0, top_p=0.0, get_scores=False,
@@ -743,11 +386,17 @@ def beam_search(model, length, context, style_content_vectors, segments, eos_tok
         new_length = length
 
     with torch.no_grad():
-        logits, past = model(
-            input_ids=context,
-            token_type_ids=segments,
-            prefix_input_vectors=style_content_vectors
-        )
+        if style_content_vectors is None:
+            logits, past = model(
+                input_ids=context,
+                token_type_ids=segments
+            )
+        else:
+            logits, past = model(
+                input_ids=context,
+                token_type_ids=segments,
+                prefix_input_vectors=style_content_vectors
+            )
         log_probs = F.log_softmax(logits[:, -1, :], dim=-1)
         top_scores, top_indices = torch.topk(input=log_probs, k=beam_size, dim=-1)
 

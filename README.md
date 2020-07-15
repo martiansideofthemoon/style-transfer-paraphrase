@@ -33,10 +33,11 @@ These descriptions are for files inside our main source code folder `gpt2_finetu
 1. `args.py` - List of argument flags used for finetuning GPT2 with default values.
 2. `data_utils.py`, `dataset_config.py` - Methods and classes to configure dataset and decide data preprocessing steps. 
 3. `hyperparameter_config.py` - The list of hyperparameters used for training our diverse paraphrase model as well as the inverse paraphrase models.
-5. `run_generation_dynamic.py` - The less preferred method to generate text using our models which integrates with our `Dataset` classes in `style_dataset.py`. The recommended way is using the `GPT2Generator` API in `utils.py`. This script is called in `run_generation_gpt2_template.sh`.
+5. `run_generation_dynamic.py` - The less preferred method to generate text using our models which integrates with our `Dataset` classes in `style_dataset.py`. The recommended way is using the `GPT2Generator` API in `inference_utils.py`. This script is called in `run_generation_gpt2_template.sh`.
 6. `run_lm_finetuning_dynamic.py` - The primary script for finetuning models and evaluating models (in terms of perplexity). This script is called in `run_finetune_gpt2_template.sh` as well as `run_evaluate_gpt2_template.sh`.
 7. `schedule.py` - Use the hyperparameters in `hyperparameter_config.py` to fill in bash scripts `run_*.sh` and schedule them on a SLURM cluster. Filled in examples of finetuning scripts are present in `examples/`
 8. `style_dataset.py` - The Pytorch `Dataset` objects used for our paraphrase dataset and inverse paraphrase dataset.
-9. `utils.py` - An important file containing the lowest level details of the training process and most importantly the `GPT2Generator` API which is used to perform generation. This API is very easy to use and loads any pretrained model. A user can easily specify the inputs as text in a list and the API will minibatch it and perform generation taking care of all the necessary preprocessing.
+9. `utils.py` - An important file containing the lowest level details of the training process.
+10. `inference_utils.py` - This file has the `GPT2Generator` API wrapper which is used to perform generation. This API is very easy to use and loads any pretrained model. A user can easily specify the inputs as text in a list and the API will minibatch it and perform generation taking care of all the necessary preprocessing.
 
 Finally, `saved_models`, `slurm-schedulers`, `logs`, `runs` are folders which contain experiment logs.
