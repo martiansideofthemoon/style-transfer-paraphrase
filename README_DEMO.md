@@ -32,6 +32,8 @@ Greedy: the documents also said that Cray's computer is likely to need another $
 
 ### Using the API
 
-The demo shows how to use greedy decoding as well as nucleus sampling with `p = 0.6`. Samples tend to be more diverse with `p=0.6`, sometimes at the expense of semantic accuracy. If you are using at a large scale, make sure you use the `generate_batch` API for faster inference. Note that sentences should be in their raw form (detokenized) and upto 50 subwords in length.
+The demo shows how to use greedy decoding as well as nucleus sampling with `p = 0.6`. Samples tend to be more diverse with `p=0.6`, sometimes at the expense of semantic accuracy. Note that sentences should be in their raw form (detokenized) and upto 50 subwords in length.
+
+If you are using at a large scale, consider using `paraphrase_many.py` which accepts a file as input and outputs paraphrases of it.
 
 You can also try out other paraphrase models by modifying the model ID at the end of the file path input to `GPT2Generator`. Use `model_249` for a GPT2-medium paraphraser, `model_317` for a non-diverse paraphraser and `model_219` for another GPT2-large paraphraser with lesser dataset filtering.

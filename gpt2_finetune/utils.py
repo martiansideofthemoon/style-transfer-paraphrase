@@ -27,7 +27,7 @@ def class_number_to_str(eval_dataset, class_number):
     if isinstance(class_number, str):
         return ", ".join(["{} {}".format(x.split("-")[0], x.split("-")[1]) for x in class_number.split("_")])
     else:
-        return eval_dataset.reverse_author_target_dict[class_number.item()]
+        return eval_dataset.reverse_label_dict[class_number.item()]
 
 def recall(sentence, srl_string):
     matches = 0
@@ -39,20 +39,6 @@ def recall(sentence, srl_string):
         return float(matches) / len(sentence.split())
     else:
         return 0
-
-
-def decode_roberta(roberta, roberta_filter_map, sentence):
-    bpe_sequence = roberta.task.source_dictionary.string(sentence).replace("<pad>", "")
-
-    if "<unk>" in bpe_sequence:
-        bpe_sequence = bpe_sequence.replace(" <unk>", " " + roberta.bpe.encode(" <unk>").strip())
-        bpe_sequence = bpe_sequence.replace("<unk>", roberta.bpe.encode("<unk>").strip())
-
-    sentence = roberta.bpe.decode(bpe_sequence)
-
-    if roberta_filter_map is not None:
-        sentence = " ".join([roberta_filter_map.get(token, token) for token in sentence.split()])
-    return sentence
 
 
 def rindex(mylist, myvalue):
@@ -95,8 +81,9 @@ def get_new_update_type(args, global_step, update_type):
         raise ValueError("Invalid value for args.switch_type")
 
 
-def init_roberta_gpt2(roberta, checkpoint_dir, args, model_class, tokenizer_class=None, evaluation=True):
-    # Load a trained model and vocabulary that you have fine-tuned
+def init_gpt2_model(checkpoint_dir, args, model_class, tokenizer_class=None):
+    """Load a trained model and vocabulary that you have fine-tuned."""
+
     model = model_class.from_pretrained(checkpoint_dir)
     model.to(args.device)
 
@@ -105,12 +92,12 @@ def init_roberta_gpt2(roberta, checkpoint_dir, args, model_class, tokenizer_clas
     else:
         tokenizer = None
 
-    return RobertaToGPT2(args=args, roberta=roberta, gpt2=model, evaluation=evaluation), tokenizer
+    return GPT2ParentModule(args=args, gpt2=model), tokenizer
 
 
-class RobertaToGPT2(nn.Module):
-    def __init__(self, args, roberta, gpt2, evaluation=False):
-        super(RobertaToGPT2, self).__init__()
+class GPT2ParentModule(nn.Module):
+    def __init__(self, args, gpt2):
+        super(GPT2ParentModule, self).__init__()
         self.args = args
         self.gpt2 = gpt2
 
@@ -118,11 +105,9 @@ class RobertaToGPT2(nn.Module):
         args = self.args
         gpt2 = self.gpt2
 
-        roberta_sentences = batch["roberta_sentence"].to(args.device)
         sentences = batch["sentence"].to(args.device)
         labels = batch["label"].to(args.device)
         segments = batch["segment"].to(args.device)
-        author_targets = batch["author_target"].to(args.device)
         global_dense_vectors = batch["global_dense_vectors"].to(args.device)
 
         if args.global_dense_feature_list == "none":
@@ -156,11 +141,9 @@ class RobertaToGPT2(nn.Module):
         args = self.args
         gpt2 = self.gpt2
 
-        roberta_sentences = batch["roberta_sentence"].to(args.device)
         sentences = batch["sentence"].to(args.device)
         labels = batch["label"].to(args.device)
         segments = batch["segment"].to(args.device)
-        author_targets = batch["author_target"].to(args.device)
         global_dense_vectors = batch["global_dense_vectors"].to(args.device)
 
         if args.global_dense_feature_list == "none":
@@ -186,7 +169,7 @@ class RobertaToGPT2(nn.Module):
 
         return lm_loss.mean().item()
 
-    def generate(self, roberta_sentences, gpt2_sentences, segments, global_dense_vectors=None,
+    def generate(self, gpt2_sentences, segments, global_dense_vectors=None,
                  init_context_size=1, eos_token_id=None, get_scores=False, interpolation=None):
         args = self.args
         gpt2 = self.gpt2

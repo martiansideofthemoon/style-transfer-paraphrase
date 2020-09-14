@@ -6,9 +6,9 @@ import numpy as np
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 from gpt2_finetune.dataset_config import DATASET_CONFIG
-from gpt2_finetune.data_utils import update_config, Instance
+from gpt2_finetune.data_utils import update_config, Instance, get_label_dict
 
-from gpt2_finetune.utils import init_roberta_gpt2
+from gpt2_finetune.utils import init_gpt2_model
 
 
 def get_config(data_dir):
@@ -29,18 +29,8 @@ class GPT2Generator(object):
         update_config(self.args, self.config)
 
         if self.args.global_dense_feature_list != "none" and not self.args.context_input_type.endswith("_paraphrase"):
-            with open("{}-bin/label/dict.txt".format(self.args.data_dir)) as f:
-                author_target_dict = f.read().strip().split("\n")
-                author_target_dict = {
-                    x.split()[0]: i
-                    for i, x in enumerate(author_target_dict)
-                    if not x.startswith("madeupword")
-                }
 
-            self.author_target_dict = author_target_dict
-            self.reverse_author_target_dict = {
-                v: k for k, v in self.author_target_dict.items()
-            }
+            self.label_dict, self.reverse_label_dict = get_label_dict(self.args.data_dir)
 
             self.global_dense_features = []
             for gdf in self.args.global_dense_feature_list.split(","):
@@ -51,21 +41,18 @@ class GPT2Generator(object):
 
                 final_vectors = {}
                 for k, v in vector_data.items():
-                    final_vectors[self.author_target_dict[k]] = v["sum"] / v["total"]
+                    final_vectors[self.label_dict[k]] = v["sum"] / v["total"]
 
                 self.global_dense_features.append((gdf, final_vectors))
 
-        self.roberta_gpt2, self.tokenizer = init_roberta_gpt2(roberta=None,
-                                                              checkpoint_dir=model_path,
-                                                              args=self.args,
-                                                              model_class=GPT2LMHeadModel,
-                                                              tokenizer_class=GPT2Tokenizer,
-                                                              evaluation=True)
+        self.roberta_gpt2, self.tokenizer = init_gpt2_model(checkpoint_dir=model_path,
+                                                            args=self.args,
+                                                            model_class=GPT2LMHeadModel,
+                                                            tokenizer_class=GPT2Tokenizer)
 
     def modify_args(self, upper_length, beam_size, top_p):
         args = self.args
         args.upper_length = upper_length
-        args.roberta_weights = "fixed"
         args.stop_token = "eos" if upper_length == "eos" else None
         args.beam_size = beam_size
         args.num_samples = 1
@@ -113,7 +100,6 @@ class GPT2Generator(object):
             instances.append(instance)
 
         output, _, scores = self.roberta_gpt2.generate(
-            roberta_sentences=torch.tensor([np.zeros((1, 512), dtype=np.float32)]).to(args.device),
             gpt2_sentences=torch.tensor([inst.sentence for inst in instances]).to(args.device),
             segments=torch.tensor([inst.segment for inst in instances]).to(args.device),
             global_dense_vectors=torch.tensor([inst.gdv for inst in instances]).to(args.device),

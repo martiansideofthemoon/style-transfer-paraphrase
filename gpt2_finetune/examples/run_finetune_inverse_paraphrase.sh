@@ -20,10 +20,7 @@ python -m torch.distributed.launch --nproc_per_node=1 gpt2_finetune/run_lm_finet
     --per_gpu_train_batch_size 1 \
     --per_gpu_eval_batch_size 10 \
     --roberta_ckpt_file model.pt \
-    --context_type content \
     --extra_embedding_dim 768 \
-    --roberta_layer 10 \
-    --roberta_weights fixed \
     --do_train \
     --switch_type constant \
     --learning_rate 5e-5 \
@@ -33,5 +30,5 @@ python -m torch.distributed.launch --nproc_per_node=1 gpt2_finetune/run_lm_finet
     --global_dense_feature_list "none" \
     --eval_all_checkpoints \
     --limit_examples 300 \
-    --specific_author_train 0 \
+    --specific_style_train 0 \
     --optimizer adam

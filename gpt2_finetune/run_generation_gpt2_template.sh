@@ -28,47 +28,35 @@ do
     printf "\n"
 
     if [ "$gtype" == "reconstruction" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
-        CONTEXT_INPUT_TYPE=variable_{context_input_type}
-
-    elif [ "$gtype" == "fixed_roberta" ] ; then
-        ROBERTA_INPUT_TYPE=fixed_{roberta_input_type}
-        CONTEXT_INPUT_TYPE=variable_{context_input_type}
-
-    elif [ "$gtype" == "fixed_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
-        CONTEXT_INPUT_TYPE=fixed_{context_input_type}
-
-    elif [ "$gtype" == "mixed_roberta_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=mixed_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=variable_{context_input_type}
 
     elif [ "$gtype" == "class_fixed_0_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=class_fixed_0_{context_input_type}
 
     elif [ "$gtype" == "class_fixed_1_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=class_fixed_1_{context_input_type}
 
     elif [ "$gtype" == "class_fixed_2_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=class_fixed_2_{context_input_type}
 
     elif [ "$gtype" == "class_fixed_3_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=class_fixed_3_{context_input_type}
 
     elif [ "$gtype" == "class_fixed_4_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=class_fixed_4_{context_input_type}
 
     elif [ "$gtype" == "class_fixed_5_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=class_fixed_5_{context_input_type}
 
     elif [ "$gtype" == "class_fixed_6_context_srl_input" ] ; then
-        ROBERTA_INPUT_TYPE=variable_{roberta_input_type}
+        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
         CONTEXT_INPUT_TYPE=class_fixed_6_{context_input_type}
 
     fi
@@ -100,19 +88,15 @@ do
         --generation_output_dir=$GENERATION_OUTPUT_DIR \
         --per_gpu_eval_batch_size {eval_batch_size} \
         --eval_split dev \
-        --roberta_ckpt_file {roberta_ckpt_file} \
         --extra_embedding_dim {extra_embedding_dim} \
-        --context_type {context_type} \
-        --roberta_layer {roberta_layer} \
-        --roberta_weights {roberta_weights} \
         --job_id {job_id} \
         --context_input_type $CONTEXT_INPUT_TYPE \
-        --roberta_input_type $ROBERTA_INPUT_TYPE \
+        --prefix_input_type $PREFIX_INPUT_TYPE \
         --limit_examples 300 \
         --fixed_example_number 10 \
         --global_dense_feature_list {global_dense_feature_list} \
         --stop_token {stop_token} \
-        --specific_author_train {specific_author_train}
+        --specific_style_train {specific_style_train}
 
     killall python
 
@@ -121,9 +105,8 @@ do
     cat $(ls $GENERATION_OUTPUT_DIR/reference_?.txt | sort) > $GENERATION_OUTPUT_DIR/reference_all.txt
     cat $(ls $GENERATION_OUTPUT_DIR/context_?.txt | sort) > $GENERATION_OUTPUT_DIR/context_all.txt
     cat $(ls $GENERATION_OUTPUT_DIR/roberta_?.txt | sort) > $GENERATION_OUTPUT_DIR/roberta_all.txt
-    cat $(ls $GENERATION_OUTPUT_DIR/context_author_targets_?.txt | sort) > $GENERATION_OUTPUT_DIR/context_author_targets_all.txt
-    cat $(ls $GENERATION_OUTPUT_DIR/roberta_author_targets_?.txt | sort) > $GENERATION_OUTPUT_DIR/roberta_author_targets_all.txt
-    cat $(ls $GENERATION_OUTPUT_DIR/original_author_targets_?.txt | sort) > $GENERATION_OUTPUT_DIR/original_author_targets_all.txt
+    cat $(ls $GENERATION_OUTPUT_DIR/context_suffix_styles_?.txt | sort) > $GENERATION_OUTPUT_DIR/context_suffix_styles_all.txt
+    cat $(ls $GENERATION_OUTPUT_DIR/original_styles_?.txt | sort) > $GENERATION_OUTPUT_DIR/original_styles_all.txt
     cat $(ls $GENERATION_OUTPUT_DIR/metadata_?.txt | sort) > $GENERATION_OUTPUT_DIR/metadata_all.txt
 
     # TODO = Remove duplicate lines
@@ -134,9 +117,8 @@ do
     cp $GENERATION_OUTPUT_DIR/reference_all.txt $GENERATION_OUTPUT_DIR/final/reference_unique.txt
     cp $GENERATION_OUTPUT_DIR/context_all.txt $GENERATION_OUTPUT_DIR/final/context_unique.txt
     cp $GENERATION_OUTPUT_DIR/roberta_all.txt $GENERATION_OUTPUT_DIR/final/roberta_unique.txt
-    cp $GENERATION_OUTPUT_DIR/context_author_targets_all.txt $GENERATION_OUTPUT_DIR/final/context_author_targets_unique.txt
-    cp $GENERATION_OUTPUT_DIR/roberta_author_targets_all.txt $GENERATION_OUTPUT_DIR/final/roberta_author_targets_unique.txt
-    cp $GENERATION_OUTPUT_DIR/original_author_targets_all.txt $GENERATION_OUTPUT_DIR/final/original_author_targets_unique.txt
+    cp $GENERATION_OUTPUT_DIR/context_suffix_styles_all.txt $GENERATION_OUTPUT_DIR/final/context_suffix_styles_unique.txt
+    cp $GENERATION_OUTPUT_DIR/original_styles_all.txt $GENERATION_OUTPUT_DIR/final/original_styles_unique.txt
     cp $GENERATION_OUTPUT_DIR/metadata_all.txt $GENERATION_OUTPUT_DIR/final/metadata_unique.txt
 
     MOSESDECODER="mosesdecoder" gpt2_finetune/scripts/multi-bleu-wrapper.sh $GENERATION_OUTPUT_DIR/final/generated_unique.txt $GENERATION_OUTPUT_DIR/final/reference_unique.txt 2>&1 | tee $GENERATION_OUTPUT_DIR/results/multibleu.txt

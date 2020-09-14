@@ -1,6 +1,7 @@
 # coding=utf-8
-# Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
+# Copyright 2020 The Google AI Language Team Authors and The HuggingFace Inc. team.
 # Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
+# Copyright 2020 Kalpesh Krishna.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Fine-tuning the library models for language modeling on a text file (GPT, GPT-2, BERT, RoBERTa).
-GPT and GPT-2 are fine-tuned using a causal language modeling (CLM) loss while BERT and RoBERTa are fine-tuned
-using a masked language modeling (MLM) loss.
-"""
+"""Fine-tuning GPT2 for conditional generation tasks."""
 
 from __future__ import absolute_import, division, print_function
 
@@ -44,11 +41,11 @@ from style_dataset import (InverseParaphraseDatasetText,
 from transformers import (WEIGHTS_NAME, AdamW, GPT2Config, GPT2LMHeadModel,
                           GPT2Tokenizer, get_linear_schedule_with_warmup)
 
-from utils import RobertaToGPT2, get_new_update_type, init_roberta_gpt2
+from utils import GPT2ParentModule, get_new_update_type, init_gpt2_model
 
 try:
     from torch.utils.tensorboard import SummaryWriter
-except:
+except ImportError:
     from tensorboardX import SummaryWriter
 
 
@@ -66,22 +63,18 @@ SPECIAL_TOKENS = {
 }
 
 
-def load_and_cache_examples(args, tokenizer, roberta, evaluate=False):
-    if args.context_input_type.endswith("_srl_input") or args.context_input_type.endswith("_roberta_input"):
+def load_and_cache_examples(args, tokenizer, evaluate=False):
+    if args.context_input_type.endswith("_roberta_input"):
         dataset = InverseParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
-            model_type=args.model_type,
-            roberta=roberta,
             evaluate=evaluate,
             split="dev" if evaluate else "train"
         )
-    elif args.context_input_type.endswith("_paraphrase") or args.context_input_type.endswith("_simplewiki"):
+    elif args.context_input_type.endswith("_paraphrase"):
         dataset = ParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
-            model_type=args.model_type,
-            roberta=roberta,
             evaluate=evaluate,
             split="dev" if evaluate else "train"
         )
@@ -125,13 +118,13 @@ def _rotate_checkpoints(args, checkpoint_prefix, use_mtime=False):
         shutil.rmtree(checkpoint)
 
 
-def save_model(roberta_gpt2, output_dir, args, tokenizer=None):
+def save_model(gpt2_model, output_dir, args, tokenizer=None):
     # Take care of distributed/parallel training
-    if roberta_gpt2.roberta_training:
-        model_to_save = roberta_gpt2.module if hasattr(roberta_gpt2, 'module') else roberta_gpt2
+    if gpt2_model.roberta_training:
+        model_to_save = gpt2_model.module if hasattr(gpt2_model, 'module') else gpt2_model
         model_to_save = model_to_save.gpt2
     else:
-        model_to_save = roberta_gpt2.gpt2
+        model_to_save = gpt2_model.gpt2
         model_to_save = model_to_save.module if hasattr(model_to_save, 'module') else model_to_save
 
     model_to_save.save_pretrained(output_dir)
@@ -141,11 +134,11 @@ def save_model(roberta_gpt2, output_dir, args, tokenizer=None):
     if tokenizer:
         tokenizer.save_pretrained(output_dir)
 
-    if roberta_gpt2.roberta_training:
+    if gpt2_model.roberta_training:
         # save the RoBERTa weights in the same directory as well
         state_dict = {
-            "args": roberta_gpt2.roberta_extractor.roberta.args,
-            "model": roberta_gpt2.roberta_extractor.roberta.model.state_dict(),
+            "args": gpt2_model.roberta_extractor.roberta.args,
+            "model": gpt2_model.roberta_extractor.roberta.model.state_dict(),
             # For compatability with fairseq
             "best_loss": 0,
             "epoch": 10,
@@ -157,7 +150,7 @@ def save_model(roberta_gpt2, output_dir, args, tokenizer=None):
         logger.info("RoBERTa weights saved to %s" % os.path.join(output_dir, 'roberta.pt'))
 
 
-def train(args, roberta_gpt2, train_dataset, tokenizer):
+def train(args, gpt2_model, train_dataset, tokenizer):
     """ Train the model """
     if args.local_rank in [-1, 0]:
         try:
@@ -176,10 +169,10 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
         t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
 
     # Update the model definition in case RoBERTa is training
-    if roberta_gpt2.roberta_training:
-        model = roberta_gpt2
+    if gpt2_model.roberta_training:
+        model = gpt2_model
     else:
-        model = roberta_gpt2.gpt2
+        model = gpt2_model.gpt2
 
     # Prepare optimizer and schedule (linear warmup and decay)
     # extra layer_norm.weight for com
@@ -235,9 +228,9 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
                                                           output_device=args.local_rank,
                                                           find_unused_parameters=True)
 
-    # this is necessary to ensure multi-GPU training happens since the roberta_gpt2.gpt2 pointer has been set to the model without the DDP wrapper
-    if not roberta_gpt2.roberta_training:
-        roberta_gpt2.gpt2 = model
+    # this is necessary to ensure multi-GPU training happens since the gpt2_model.gpt2 pointer has been set to the model without the DDP wrapper
+    if not gpt2_model.roberta_training:
+        gpt2_model.gpt2 = model
 
     # Train!
     logger.info("***** Running training *****")
@@ -267,7 +260,7 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
         for step, batch in enumerate(epoch_iterator):
 
-            loss = roberta_gpt2(batch, update_type=update_type)
+            loss = gpt2_model(batch, update_type=update_type)
             loss["total"] = loss["lm"]
 
             if args.n_gpu > 1:
@@ -307,7 +300,7 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
                 if args.local_rank in [-1, 0] and args.logging_steps > 0 and global_step % args.logging_steps == 0:
                     # Only evaluate when single GPU otherwise metrics may not average well
                     if args.local_rank == -1 and args.evaluate_during_training:
-                        results = evaluate(args, roberta_gpt2, tokenizer)
+                        results = evaluate(args, gpt2_model, tokenizer)
                         for key, value in results.items():
                             tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
 
@@ -328,7 +321,7 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
                     if not os.path.exists(output_dir):
                         os.makedirs(output_dir)
 
-                    save_model(roberta_gpt2, output_dir, args, tokenizer=tokenizer)
+                    save_model(gpt2_model, output_dir, args, tokenizer=tokenizer)
 
                     _rotate_checkpoints(args, checkpoint_prefix)
 
@@ -345,11 +338,11 @@ def train(args, roberta_gpt2, train_dataset, tokenizer):
     return global_step, loss_metrics["lm"]["current"] / global_step
 
 
-def evaluate(args, roberta_gpt2, tokenizer, prefix=""):
+def evaluate(args, gpt2_model, tokenizer, prefix=""):
     # Loop to handle MNLI double evaluation (matched, mis-matched)
     eval_output_dir = args.output_dir
 
-    eval_dataset = load_and_cache_examples(args, tokenizer, roberta=roberta_gpt2.roberta_extractor.roberta, evaluate=True)
+    eval_dataset = load_and_cache_examples(args, tokenizer, evaluate=True)
 
     if not os.path.exists(eval_output_dir) and args.local_rank in [-1, 0]:
         os.makedirs(eval_output_dir)
@@ -361,7 +354,7 @@ def evaluate(args, roberta_gpt2, tokenizer, prefix=""):
 
     # multi-gpu evaluate
     if args.n_gpu > 1:
-        roberta_gpt2 = torch.nn.DataParallel(roberta_gpt2)
+        gpt2_model = torch.nn.DataParallel(gpt2_model)
 
     # Eval!
     logger.info("***** Running evaluation {} *****".format(prefix))
@@ -372,12 +365,12 @@ def evaluate(args, roberta_gpt2, tokenizer, prefix=""):
 
     total_instances = 0
 
-    roberta_gpt2.eval()
+    gpt2_model.eval()
 
     for batch in tqdm(eval_dataloader, desc="Evaluating"):
-        curr_loss = roberta_gpt2.evaluate(batch)
+        curr_loss = gpt2_model.evaluate(batch)
         eval_loss += curr_loss
-        total_instances += batch["author_target"].shape[0]
+        total_instances += batch["suffix_style"].shape[0]
         nb_eval_steps += 1
 
     eval_loss = eval_loss / nb_eval_steps
@@ -401,7 +394,7 @@ def main():
     parser = get_parser("finetuning")
     args = parser.parse_args()
 
-    if os.path.exists(args.output_dir) and os.listdir(args.output_dir) and args.do_train and not args.overwrite_output_dir:
+    if (os.path.exists(args.output_dir) and os.listdir(args.output_dir) and args.do_train and not args.overwrite_output_dir):
         raise ValueError("Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(args.output_dir))
 
     # Setup CUDA, GPU & distributed training
@@ -425,21 +418,10 @@ def main():
     # Set seed
     set_seed(args)
 
-    # Load a pretrained style-disentangling RoBERTa model, which will be used to create the features
-    if args.content_aggregation > MAX_ROBERTA_LENGTH and args.roberta_weights == "fixed":
-        roberta = None
-    else:
-        roberta = RobertaModel.from_pretrained(
-            args.roberta_pretrained,
-            checkpoint_file=args.roberta_ckpt_file,
-            data_name_or_path=args.data_dir + "-bin"
-        )
-        roberta.cuda()
-        roberta.eval()
-
     # Load pretrained model and tokenizer
     if args.local_rank not in [-1, 0]:
-        torch.distributed.barrier()  # Barrier to make sure only the first process in distributed training download model & vocab
+        # Barrier to make sure only the first process in distributed training download model & vocab
+        torch.distributed.barrier()
 
     config_class, model_class, tokenizer_class = MODEL_CLASSES[args.model_type]
     config = config_class.from_pretrained(args.config_name if args.config_name else args.model_name_or_path,
@@ -450,7 +432,8 @@ def main():
                                                 do_lower_case=args.do_lower_case,
                                                 cache_dir=args.cache_dir if args.cache_dir else None)
     if args.block_size <= 0:
-        args.block_size = tokenizer.max_len_single_sentence  # Our input block size will be the max possible for the model
+        # Our input block size will be the max possible for the model
+        args.block_size = tokenizer.max_len_single_sentence
     args.block_size = min(args.block_size, tokenizer.max_len_single_sentence)
     model = model_class.from_pretrained(args.model_name_or_path,
                                         from_tf=bool('.ckpt' in args.model_name_or_path),
@@ -461,7 +444,7 @@ def main():
 
     model.to(args.device)
 
-    roberta_gpt2 = RobertaToGPT2(args=args, roberta=roberta, gpt2=model)
+    gpt2_model = GPT2ParentModule(args=args, gpt2=model)
 
     if args.local_rank == 0:
         torch.distributed.barrier()  # End of barrier to make sure only the first process in distributed training download model & vocab
@@ -473,12 +456,12 @@ def main():
         if args.local_rank not in [-1, 0]:
             torch.distributed.barrier()  # Barrier to make sure only the first process in distributed training process the dataset, and the others will use the cache
 
-        train_dataset = load_and_cache_examples(args, tokenizer, roberta=roberta, evaluate=False)
+        train_dataset = load_and_cache_examples(args, tokenizer, evaluate=False)
 
         if args.local_rank == 0:
             torch.distributed.barrier()
 
-        global_step, tr_loss = train(args, roberta_gpt2, train_dataset, tokenizer)
+        global_step, tr_loss = train(args, gpt2_model, train_dataset, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
     # Saving best-practices: if you use save_pretrained for the model and tokenizer, you can reload them using from_pretrained()
@@ -487,13 +470,11 @@ def main():
         if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
             os.makedirs(args.output_dir)
 
-        save_model(roberta_gpt2, args.output_dir, args, tokenizer)
-        roberta_gpt2, tokenizer = init_roberta_gpt2(roberta=roberta_gpt2.roberta_extractor.roberta,
-                                                    checkpoint_dir=args.output_dir,
-                                                    args=args,
-                                                    model_class=model_class,
-                                                    tokenizer_class=tokenizer_class,
-                                                    evaluation=True)
+        save_model(gpt2_model, args.output_dir, args, tokenizer)
+        gpt2_model, tokenizer = init_gpt2_model(checkpoint_dir=args.output_dir,
+                                                args=args,
+                                                model_class=model_class,
+                                                tokenizer_class=tokenizer_class)
 
     # Evaluation
     results = []
@@ -514,13 +495,11 @@ def main():
             global_step = checkpoint.split('-')[-1] if len(checkpoints) > 1 else ""
             prefix = checkpoint.split('/')[-1] if checkpoint.find('checkpoint') != -1 else ""
 
-            roberta_gpt2, _ = init_roberta_gpt2(roberta=roberta_gpt2.roberta_extractor.roberta,
-                                                checkpoint_dir=checkpoint,
-                                                args=args,
-                                                model_class=model_class,
-                                                evaluation=True)
+            gpt2_model, _ = init_gpt2_model(checkpoint_dir=checkpoint,
+                                            args=args,
+                                            model_class=model_class)
 
-            result = evaluate(args, roberta_gpt2, tokenizer, prefix=prefix)
+            result = evaluate(args, gpt2_model, tokenizer, prefix=prefix)
             results.append((checkpoint, result))
 
         results.sort(key=lambda x: x[1]["perplexity"].item())

@@ -33,16 +33,12 @@ python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/{module}.py \
     --num_train_epochs {num_epochs} \
     --gradient_accumulation_steps {accumulation} \
     --per_gpu_train_batch_size {batch_size} \
-    --roberta_ckpt_file {roberta_ckpt_file} \
     --extra_embedding_dim {extra_embedding_dim} \
-    --context_type {context_type} \
-    --roberta_layer {roberta_layer} \
-    --roberta_weights {roberta_weights} \
     --limit_examples 100 \
     --job_id {job_id} \
     --switch_type {switch_type} \
     --learning_rate {learning_rate} \
     --context_input_type variable_{context_input_type} \
-    --roberta_input_type variable_{roberta_input_type} \
+    --prefix_input_type {prefix_input_type} \
     --global_dense_feature_list {global_dense_feature_list} \
-    --specific_author_train {specific_author_train}
+    --specific_style_train {specific_style_train}

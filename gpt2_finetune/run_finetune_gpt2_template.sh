@@ -40,18 +40,14 @@ python -m torch.distributed.launch --nproc_per_node={ngpus} $BASE_DIR/{module}.p
     --num_train_epochs {num_epochs} \
     --gradient_accumulation_steps {accumulation} \
     --per_gpu_train_batch_size {batch_size} \
-    --roberta_ckpt_file {roberta_ckpt_file} \
     --extra_embedding_dim {extra_embedding_dim} \
-    --context_type {context_type} \
-    --roberta_layer {roberta_layer} \
-    --roberta_weights {roberta_weights} \
     --job_id {job_id} \
     --switch_type {switch_type} \
     --learning_rate {learning_rate} \
     --generator_loss_constants {generator_loss_constants} \
-    --roberta_input_type variable_{roberta_input_type} \
+    --prefix_input_type {roberta_input_type} \
     --context_input_type variable_{context_input_type} \
     --context_noise {context_noise} \
     --global_dense_feature_list {global_dense_feature_list} \
-    --specific_author_train {specific_author_train} \
+    --specific_style_train {specific_style_train} \
     --optimizer {optimizer}

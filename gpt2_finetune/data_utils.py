@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+import pickle
 import random
 
 MAX_ROBERTA_LENGTH = 502
@@ -109,7 +110,7 @@ class Instance(object):
         assert len(self.sentence) == len(self.segment) - dense_length
 
 
-class HPInstance(Instance):
+class InverseInstance(Instance):
     def __init__(self, args, config, instance_dict):
         self.dict = instance_dict
         self.args = args
@@ -119,42 +120,12 @@ class HPInstance(Instance):
 
         self.original_sentence = instance_dict["sentence"]
         self.roberta_sentence = instance_dict["roberta_sentence"]
-        self.author_tag_str = instance_dict["author_tag_str"]
-        self.author_tag_ids = instance_dict["author_tag_ids"]
-        self.author_target = instance_dict["author_target"]
-        self.original_author_target = instance_dict["original_target"]
-
-        if "roberta_author_target" not in instance_dict:
-            self.roberta_author_target = instance_dict["author_target"]
-        else:
-            self.roberta_author_target = instance_dict["roberta_author_target"]
+        self.suffix_style = instance_dict["suffix_style"]
+        self.original_style = instance_dict["original_style"]
 
         # Choose how to build sent1_tokens and sent2_tokens
         self.decide_sent1_tokens()
         self.sent2_tokens = np.array(self.original_sentence, dtype=np.int32)
-
-        # process RoBERTa separately since it relies on fairseq
-        self.preprocess_roberta()
-
-    def preprocess_roberta(self):
-        roberta_sentence = self.roberta_sentence
-
-        if isinstance(roberta_sentence, str):
-            roberta_sentence = np.array(
-                [int(x) for x in roberta_sentence.split()],
-                dtype=np.int32
-            )
-        else:
-            roberta_sentence = roberta_sentence.numpy().astype(np.int32)
-
-        # Pad or truncate the RoBERTa sentence length to MAX_ROBERTA_LENGTH
-        if len(roberta_sentence) < MAX_ROBERTA_LENGTH:
-            roberta_sentence = right_padding(roberta_sentence, 1, MAX_ROBERTA_LENGTH)
-        else:
-            roberta_sentence = roberta_sentence[:MAX_ROBERTA_LENGTH]
-
-        assert len(roberta_sentence) == MAX_ROBERTA_LENGTH
-        self.roberta_sentence = roberta_sentence
 
     def decide_sent1_tokens(self):
         args = self.args
@@ -168,25 +139,55 @@ class HPInstance(Instance):
             )
             self.sent1_tokens_tags = None
         else:
-            self.sent1_tokens = np.array(
-                [int(x) for x in self.author_tag_str],
-                dtype=np.int32
-            )
-            self.sent1_tokens_tags = self.author_tag_ids
+            raise ValueError("Invalid value for --context_input_type")
+
 
 def np_prepend(array, value):
     return np.insert(array, 0, value)
+
 
 def left_padding(data, pad_token, total_length):
     tokens_to_pad = total_length - len(data)
     return np.pad(data, (tokens_to_pad, 0), constant_values=pad_token)
 
+
 def right_padding(data, pad_token, total_length):
     tokens_to_pad = total_length - len(data)
     return np.pad(data, (0, tokens_to_pad), constant_values=pad_token)
 
+
 def string_to_ids(text, tokenizer):
     return tokenizer.convert_tokens_to_ids(tokenizer.tokenize(text))
+
+
+def get_label_dict(data_dir):
+    label_dict = {}
+    with open("{}-bin/label/dict.txt".format(data_dir)) as f:
+        label_dict_lines = f.read().strip().split("\n")
+    for i, x in enumerate(label_dict_lines):
+        if x.startswith("madeupword"):
+            continue
+        label_dict[x.split()[0]] = i
+    reverse_label_dict = {v: k for k, v in label_dict.items()}
+
+    return label_dict, reverse_label_dict
+
+def get_global_dense_features(data_dir, global_dense_feature_list, label_dict):
+    """Get dense style code vectors for the style code model."""
+
+    global_dense_features = []
+    if global_dense_feature_list != "none":
+        logger.info("Using global dense vector features = %s" % global_dense_feature_list)
+        for gdf in global_dense_feature_list.split(","):
+            with open("{}/{}_dense_vectors.pickle".format(data_dir, gdf), "rb") as f:
+                vector_data = pickle.load(f)
+
+            final_vectors = {}
+            for k, v in vector_data.items():
+                final_vectors[label_dict[k]] = v["sum"] / v["total"]
+
+            global_dense_features.append((gdf, final_vectors))
+    return global_dense_features
 
 def limit_dataset_size(dataset, limit_examples):
     """Limit the dataset size to a small number for debugging / generation."""
@@ -197,24 +198,20 @@ def limit_dataset_size(dataset, limit_examples):
 
     return dataset
 
-def limit_authors(dataset, specific_author_train, split, reverse_author_target_dict):
+def limit_styles(dataset, specific_style_train, split, reverse_label_dict):
     """Limit the dataset size to a certain author."""
-    specific_author_train = [int(x) for x in specific_author_train.split(",")]
+    specific_style_train = [int(x) for x in specific_style_train.split(",")]
 
     original_dataset_size = len(dataset)
-    if split in ["train", "test"] and -1 not in specific_author_train:
-        logger.info(
-            "Preserving authors = {}".format(", ".join([reverse_author_target_dict[x] for x in specific_author_train]))
-        )
-        dataset = [
-            x for x in dataset if x["author_target"] in specific_author_train
-        ]
+    if split in ["train", "test"] and -1 not in specific_style_train:
+        logger.info("Preserving authors = {}".format(", ".join([reverse_label_dict[x] for x in specific_style_train])))
+        dataset = [x for x in dataset if x["suffix_style"] in specific_style_train]
         logger.info("Remaining instances after author filtering = {:d} / {:d}".format(len(dataset), original_dataset_size))
     return dataset
 
 
 def datum_to_dict(config, datum, tokenizer):
-    """Convert an datum to the instance dictionary."""
+    """Convert a data point to the instance dictionary."""
 
     instance_dict = {"metadata": ""}
 
@@ -223,16 +220,10 @@ def datum_to_dict(config, datum, tokenizer):
         instance_dict[key["key"]] = string_to_ids(element_value, tokenizer) if key["tokenize"] else element_value
         if key["metadata"]:
             instance_dict["metadata"] += "%s = %s, " % (key["key"], str(element_value))
-
+    # strip off trailing , from metadata
     instance_dict["metadata"] = instance_dict["metadata"][:-2]
     return instance_dict
 
-
-def aggregate_content_information(content_vectors, content_aggregation):
-    # select vectors at every content_aggregation interval
-    content_agg_indices = [i for i in range(content_vectors.shape[1]) if i % content_aggregation == 0]
-    content_agg_vectors = content_vectors[:, content_agg_indices, :]
-    return content_agg_vectors
 
 def update_config(args, config):
     if args.context_input_type.endswith("_no_srl_input"):

@@ -7,12 +7,7 @@ def get_parser(parser_type, model_classes=None, all_models=None):
     # Base parameters
     parser.add_argument("--data_dir", default=None, type=str, required=True,
                         help="The input dataset directory.")
-    parser.add_argument("--roberta_pretrained", default=None, type=str, required=True,
-                        help="The pretrained roberta checkpoint which has disentangled style.")
-    parser.add_argument("--roberta_layer", type=int, default=-1)
-    parser.add_argument("--roberta_ckpt_file", type=str, default="checkpoint_best.pt")
 
-    parser.add_argument('--context_type', type=str, default='style_content', help='the kind of context vectors to use')
     parser.add_argument('--extra_embedding_dim', type=int, default=1536,
                         help="Size of linear layer used for projecting extra embeddings.")
 
@@ -29,16 +24,16 @@ def get_parser(parser_type, model_classes=None, all_models=None):
     parser.add_argument("--per_gpu_eval_batch_size", default=4, type=int,
                         help="Batch size per GPU/CPU for evaluation.")
     parser.add_argument("--limit_examples", type=int, default=None)
-    parser.add_argument("--roberta_weights", type=str, default="fixed")
     parser.add_argument("--do_lower_case", action='store_true',
                         help="Set this flag if you are using an uncased model.")
     parser.add_argument("--job_id", type=str, default="test")
 
     parser.add_argument("--context_input_type", type=str, default="variable_srl_input")
-    parser.add_argument("--roberta_input_type", type=str, default="variable_nofilter")
+    parser.add_argument("--prefix_input_type", type=str, default="nofilter",
+                        help="During inverse paraphrasing, the text used as prefix (often paraphrase model ID).")
 
     parser.add_argument("--global_dense_feature_list", type=str, default="none")
-    parser.add_argument("--specific_author_train", type=str, default="-1")
+    parser.add_argument("--specific_style_train", type=str, default="-1")
 
     if parser_type == "finetuning":
         parser.add_argument("--output_dir", default=None, type=str, required=True,
@@ -126,5 +121,4 @@ def get_parser(parser_type, model_classes=None, all_models=None):
         parser.add_argument("--beam_search_scoring", type=str, default="normalize")
         parser.add_argument('--stop_token', type=str, default=None,
                             help="Token at which text generation is stopped")
-        parser.add_argument("--fixed_example_number", type=int, default=10)
     return parser
