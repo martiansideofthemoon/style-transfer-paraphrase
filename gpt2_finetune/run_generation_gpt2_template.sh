@@ -16,7 +16,7 @@ DATA_DIR={dataset}
 BEAM_SIZE={beam_size}
 TOP_P=0.0
 
-declare -a arr=("reconstruction" "class_fixed_0_context_srl_input" "class_fixed_1_context_srl_input")
+declare -a arr=("reconstruction" "class_fixed_0" "class_fixed_1")
 
 for gtype in "${arr[@]}"
 do
@@ -28,36 +28,36 @@ do
     printf "\n"
 
     if [ "$gtype" == "reconstruction" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=variable_{context_input_type}
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE="none"
 
-    elif [ "$gtype" == "class_fixed_0_context_srl_input" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=class_fixed_0_{context_input_type}
+    elif [ "$gtype" == "class_fixed_0" ] ; then
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE=class_fixed_0
 
-    elif [ "$gtype" == "class_fixed_1_context_srl_input" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=class_fixed_1_{context_input_type}
+    elif [ "$gtype" == "class_fixed_1" ] ; then
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE=class_fixed_1
 
-    elif [ "$gtype" == "class_fixed_2_context_srl_input" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=class_fixed_2_{context_input_type}
+    elif [ "$gtype" == "class_fixed_2" ] ; then
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE=class_fixed_2
 
-    elif [ "$gtype" == "class_fixed_3_context_srl_input" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=class_fixed_3_{context_input_type}
+    elif [ "$gtype" == "class_fixed_3" ] ; then
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE=class_fixed_3
 
-    elif [ "$gtype" == "class_fixed_4_context_srl_input" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=class_fixed_4_{context_input_type}
+    elif [ "$gtype" == "class_fixed_4" ] ; then
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE=class_fixed_4
 
-    elif [ "$gtype" == "class_fixed_5_context_srl_input" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=class_fixed_5_{context_input_type}
+    elif [ "$gtype" == "class_fixed_5" ] ; then
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE=class_fixed_5
 
-    elif [ "$gtype" == "class_fixed_6_context_srl_input" ] ; then
-        PREFIX_INPUT_TYPE=variable_{prefix_input_type}
-        CONTEXT_INPUT_TYPE=class_fixed_6_{context_input_type}
+    elif [ "$gtype" == "class_fixed_6" ] ; then
+        PREFIX_INPUT_TYPE={prefix_input_type}
+        TARGET_STYLE_OVERRIDE=class_fixed_6
 
     fi
 
@@ -88,9 +88,8 @@ do
         --generation_output_dir=$GENERATION_OUTPUT_DIR \
         --per_gpu_eval_batch_size {eval_batch_size} \
         --eval_split dev \
-        --extra_embedding_dim {extra_embedding_dim} \
         --job_id {job_id} \
-        --context_input_type $CONTEXT_INPUT_TYPE \
+        --target_style_override $TARGET_STYLE_OVERRIDE \
         --prefix_input_type $PREFIX_INPUT_TYPE \
         --limit_examples 300 \
         --fixed_example_number 10 \

@@ -41,7 +41,7 @@ from style_dataset import (InverseParaphraseDatasetText,
 from transformers import (WEIGHTS_NAME, AdamW, GPT2Config, GPT2LMHeadModel,
                           GPT2Tokenizer, get_linear_schedule_with_warmup)
 
-from utils import GPT2ParentModule, get_new_update_type, init_gpt2_model
+from utils import GPT2ParentModule, init_gpt2_model
 
 try:
     from torch.utils.tensorboard import SummaryWriter
@@ -64,14 +64,14 @@ SPECIAL_TOKENS = {
 
 
 def load_and_cache_examples(args, tokenizer, evaluate=False):
-    if args.context_input_type.endswith("_roberta_input"):
+    if args.prefix_input_type.startswith("original"):
         dataset = InverseParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
             evaluate=evaluate,
             split="dev" if evaluate else "train"
         )
-    elif args.context_input_type.endswith("_paraphrase"):
+    else:
         dataset = ParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
@@ -120,12 +120,8 @@ def _rotate_checkpoints(args, checkpoint_prefix, use_mtime=False):
 
 def save_model(gpt2_model, output_dir, args, tokenizer=None):
     # Take care of distributed/parallel training
-    if gpt2_model.roberta_training:
-        model_to_save = gpt2_model.module if hasattr(gpt2_model, 'module') else gpt2_model
-        model_to_save = model_to_save.gpt2
-    else:
-        model_to_save = gpt2_model.gpt2
-        model_to_save = model_to_save.module if hasattr(model_to_save, 'module') else model_to_save
+    model_to_save = gpt2_model.gpt2
+    model_to_save = model_to_save.module if hasattr(model_to_save, 'module') else model_to_save
 
     model_to_save.save_pretrained(output_dir)
     logger.info("Saving model checkpoint to %s", output_dir)
@@ -133,21 +129,6 @@ def save_model(gpt2_model, output_dir, args, tokenizer=None):
 
     if tokenizer:
         tokenizer.save_pretrained(output_dir)
-
-    if gpt2_model.roberta_training:
-        # save the RoBERTa weights in the same directory as well
-        state_dict = {
-            "args": gpt2_model.roberta_extractor.roberta.args,
-            "model": gpt2_model.roberta_extractor.roberta.model.state_dict(),
-            # For compatability with fairseq
-            "best_loss": 0,
-            "epoch": 10,
-            "optimizer": "AdamW",
-            "batch_offset": 0,
-            "val_loss": 0
-        }
-        torch.save(state_dict, os.path.join(output_dir, 'roberta.pt'))
-        logger.info("RoBERTa weights saved to %s" % os.path.join(output_dir, 'roberta.pt'))
 
 
 def train(args, gpt2_model, train_dataset, tokenizer):
@@ -169,47 +150,35 @@ def train(args, gpt2_model, train_dataset, tokenizer):
         t_total = len(train_dataloader) // args.gradient_accumulation_steps * args.num_train_epochs
 
     # Update the model definition in case RoBERTa is training
-    if gpt2_model.roberta_training:
-        model = gpt2_model
-    else:
-        model = gpt2_model.gpt2
+    model = gpt2_model.gpt2
 
     # Prepare optimizer and schedule (linear warmup and decay)
     # extra layer_norm.weight for com
     no_decay = ['bias', 'LayerNorm.weight', 'layer_norm.weight']
 
-    if not args.context_input_type.endswith("_none"):
-        def parameter_filter(x):
-            return True
-    else:
-        def parameter_filter(x):
-            lambda x: "style_from_content" not in x
-
-    generator_grouped_parameters = [
+    grouped_parameters = [
         {
             'params': [
                 p for n, p in model.named_parameters()
-                if parameter_filter(n) and (not any(nd in n for nd in no_decay))
+                if not any(nd in n for nd in no_decay)
             ],
             'weight_decay': args.weight_decay
         },
         {
             'params': [
                 p for n, p in model.named_parameters()
-                if parameter_filter(n) and (any(nd in n for nd in no_decay))
+                if any(nd in n for nd in no_decay)
             ],
             'weight_decay': 0.0
         }
     ]
 
-    optimizer = {
-        "generator": AdamW(generator_grouped_parameters, lr=float(args.learning_rate.split(",")[0]), eps=args.adam_epsilon)
-    }
-    scheduler = {
-        "generator": get_linear_schedule_with_warmup(optimizer["generator"],
-                                                     num_warmup_steps=args.warmup_steps,
-                                                     num_training_steps=t_total)
-    }
+    optimizer = AdamW(grouped_parameters,
+                      lr=float(args.learning_rate),
+                      eps=args.adam_epsilon)
+    scheduler = get_linear_schedule_with_warmup(optimizer,
+                                                num_warmup_steps=args.warmup_steps,
+                                                num_training_steps=t_total)
 
     if args.fp16:
         try:
@@ -229,8 +198,7 @@ def train(args, gpt2_model, train_dataset, tokenizer):
                                                           find_unused_parameters=True)
 
     # this is necessary to ensure multi-GPU training happens since the gpt2_model.gpt2 pointer has been set to the model without the DDP wrapper
-    if not gpt2_model.roberta_training:
-        gpt2_model.gpt2 = model
+    gpt2_model.gpt2 = model
 
     # Train!
     logger.info("***** Running training *****")
@@ -244,24 +212,17 @@ def train(args, gpt2_model, train_dataset, tokenizer):
 
     global_step = 0
     loss_metrics = {
-        "lm": {"current": 0.0, "previous": 0.0},
-        "total": {"current": 0.0, "previous": 0.0}
+        "lm": {"current": 0.0, "previous": 0.0}
     }
     model.zero_grad()
     train_iterator = trange(int(args.num_train_epochs), desc="Epoch", disable=args.local_rank not in [-1, 0])
     set_seed(args)  # Added here for reproducibility (even between python 2 and 3)
 
-    update_type = "generator"
-
-    generator_loss_constants = args.generator_loss_constants.split(",")
-    generator_loss_constants = [float(x) for x in generator_loss_constants]
-
     for _ in train_iterator:
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
         for step, batch in enumerate(epoch_iterator):
 
-            loss = gpt2_model(batch, update_type=update_type)
-            loss["total"] = loss["lm"]
+            loss = gpt2_model(batch)
 
             if args.n_gpu > 1:
                 for k, v in loss.items():
@@ -272,10 +233,10 @@ def train(args, gpt2_model, train_dataset, tokenizer):
                     loss[k] = v / args.gradient_accumulation_steps
 
             if args.fp16:
-                with amp.scale_loss(loss["total"], optimizer) as scaled_loss:
+                with amp.scale_loss(loss["lm"], optimizer) as scaled_loss:
                     scaled_loss.backward()
             else:
-                loss["total"].backward()
+                loss["lm"].backward()
 
             # Update the metrics for Tensorboard logging
             for metric_type, metric_vals in loss_metrics.items():
@@ -288,14 +249,11 @@ def train(args, gpt2_model, train_dataset, tokenizer):
                     torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
 
                 # Update the generator or the discriminator optimizer
-                optimizer[update_type].step()
-                scheduler[update_type].step()
+                optimizer.step()
+                scheduler.step()
 
                 model.zero_grad()
                 global_step += 1
-
-                # Check if there is a modification for the update_type, generator --> discriminator
-                update_type = get_new_update_type(args, global_step, update_type)
 
                 if args.local_rank in [-1, 0] and args.logging_steps > 0 and global_step % args.logging_steps == 0:
                     # Only evaluate when single GPU otherwise metrics may not average well
@@ -304,7 +262,7 @@ def train(args, gpt2_model, train_dataset, tokenizer):
                         for key, value in results.items():
                             tb_writer.add_scalar('eval_{}'.format(key), value, global_step)
 
-                    tb_writer.add_scalar('lr_generator', scheduler["generator"].get_lr()[0], global_step)
+                    tb_writer.add_scalar('learning_rate', scheduler.get_lr()[0], global_step)
 
                     for metric_type, metric_vals in loss_metrics.items():
                         tb_writer.add_scalar(
@@ -431,10 +389,7 @@ def main():
     tokenizer = tokenizer_class.from_pretrained(args.tokenizer_name if args.tokenizer_name else args.model_name_or_path,
                                                 do_lower_case=args.do_lower_case,
                                                 cache_dir=args.cache_dir if args.cache_dir else None)
-    if args.block_size <= 0:
-        # Our input block size will be the max possible for the model
-        args.block_size = tokenizer.max_len_single_sentence
-    args.block_size = min(args.block_size, tokenizer.max_len_single_sentence)
+
     model = model_class.from_pretrained(args.model_name_or_path,
                                         from_tf=bool('.ckpt' in args.model_name_or_path),
                                         config=config,

@@ -115,6 +115,7 @@ class InverseParaphraseDatasetText(Dataset):
         self.evaluate = evaluate
         self.args = args
         data_dir = args.data_dir
+        prefix_input_type = args.prefix_input_type
 
         self.config = DATASET_CONFIG[data_dir]
 
@@ -122,14 +123,10 @@ class InverseParaphraseDatasetText(Dataset):
         config = self.config
         logger.info(self.config)
 
-        prefix_input_type = "_".join(args.prefix_input_type.split("_")[1:])
-
         cached_features_file = os.path.join(
             data_dir, args.model_type + "_cached_lm_" + split
         )
-
-        if prefix_input_type != "nofilter":
-            cached_features_file += "_prefix_{}".format(prefix_input_type)
+        cached_features_file += "_prefix_{}".format(prefix_input_type)
 
         # Read cached list of labels, which is used for style code models
         self.label_dict, self.reverse_label_dict = get_label_dict(data_dir)
@@ -179,14 +176,14 @@ class InverseParaphraseDatasetText(Dataset):
         for eg in self.examples:
             eg["original_style"] = eg["suffix_style"]
 
-        # Override the target style for conditional generation
-        if args.context_input_type.startswith("class_fixed_interpolate_"):
-            class_number = args.context_input_type.replace("_roberta_input", "").replace("class_fixed_interpolate_", "")
+        # Override the suffix / target style for conditional generation
+        if args.target_style_override.startswith("class_fixed_interpolate_"):
+            class_number = args.target_style_override.replace("class_fixed_interpolate_", "")
             for eg in self.examples:
                 eg["suffix_style"] = class_number
 
-        elif args.context_input_type.startswith("class_fixed_"):
-            class_number = int(args.context_input_type.split("_")[2])
+        elif args.target_style_override.startswith("class_fixed_"):
+            class_number = int(args.target_style_override.split("_")[2])
             for eg in self.examples:
                 eg["suffix_style"] = class_number
 
@@ -214,7 +211,7 @@ class InverseParaphraseDatasetText(Dataset):
         init_context_size = self.examples[item].init_context_size
 
         if len(self.global_dense_features) > 0:
-            if self.args.context_input_type.startswith("class_fixed_interpolate_"):
+            if self.args.target_style_override.startswith("class_fixed_interpolate_"):
                 authors = [
                     (float(x.split("-")[0]), int(x.split("-")[1]))
                     for x in suffix_style.split("_")

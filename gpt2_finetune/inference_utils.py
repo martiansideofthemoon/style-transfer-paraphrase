@@ -28,7 +28,7 @@ class GPT2Generator(object):
         self.config = get_config(self.args.data_dir)
         update_config(self.args, self.config)
 
-        if self.args.global_dense_feature_list != "none" and not self.args.context_input_type.endswith("_paraphrase"):
+        if self.args.global_dense_feature_list != "none":
 
             self.label_dict, self.reverse_label_dict = get_label_dict(self.args.data_dir)
 
@@ -45,10 +45,10 @@ class GPT2Generator(object):
 
                 self.global_dense_features.append((gdf, final_vectors))
 
-        self.roberta_gpt2, self.tokenizer = init_gpt2_model(checkpoint_dir=model_path,
-                                                            args=self.args,
-                                                            model_class=GPT2LMHeadModel,
-                                                            tokenizer_class=GPT2Tokenizer)
+        self.gpt2_model, self.tokenizer = init_gpt2_model(checkpoint_dir=model_path,
+                                                          args=self.args,
+                                                          model_class=GPT2LMHeadModel,
+                                                          tokenizer_class=GPT2Tokenizer)
 
     def modify_args(self, upper_length, beam_size, top_p):
         args = self.args
@@ -64,7 +64,8 @@ class GPT2Generator(object):
     def modify_p(self, top_p):
         self.args.top_p = top_p
 
-    def generate_batch(self, contexts, global_dense_features=None, get_scores=False, interpolation=None):
+    def generate_batch(self, contexts, global_dense_features=None, get_scores=False,
+                       interpolation=None, top_p=None):
         args = self.args
         tokenizer = self.tokenizer
         instances = []
@@ -99,14 +100,15 @@ class GPT2Generator(object):
             instance.gdv = global_dense_vectors
             instances.append(instance)
 
-        output, _, scores = self.roberta_gpt2.generate(
+        output, _, scores = self.gpt2_model.generate(
             gpt2_sentences=torch.tensor([inst.sentence for inst in instances]).to(args.device),
             segments=torch.tensor([inst.segment for inst in instances]).to(args.device),
             global_dense_vectors=torch.tensor([inst.gdv for inst in instances]).to(args.device),
             init_context_size=instances[0].init_context_size,
             eos_token_id=tokenizer.eos_token_id,
             get_scores=get_scores,
-            interpolation=interpolation
+            interpolation=interpolation,
+            top_p=top_p
         )
 
         all_output = []
@@ -127,8 +129,10 @@ class GPT2Generator(object):
 
         return all_output, scores
 
-    def generate(self, context, global_dense_features=None, get_scores=False, interpolation=None):
+    def generate(self, context, global_dense_features=None, get_scores=False,
+                 interpolation=None, top_p=None):
         return self.generate_batch([context],
                                    [global_dense_features],
                                    get_scores=get_scores,
-                                   interpolation=interpolation)[0][0]
+                                   interpolation=interpolation,
+                                   top_p=top_p)[0][0]

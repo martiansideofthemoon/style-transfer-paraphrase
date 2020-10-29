@@ -29,9 +29,6 @@ python -m torch.distributed.launch --nproc_per_node={ngpus} $BASE_DIR/{module}.p
     --do_train \
     --data_dir=$DATA_DIR \
     --do_eval \
-    --roberta_pretrained={roberta_dir} \
-    --content_aggregation={content_aggregation} \
-    --content_aggregation_type={content_aggregation_type} \
     --save_steps {save_steps} \
     --logging_steps 20 \
     --save_total_limit {save_total_limit} \
@@ -40,14 +37,9 @@ python -m torch.distributed.launch --nproc_per_node={ngpus} $BASE_DIR/{module}.p
     --num_train_epochs {num_epochs} \
     --gradient_accumulation_steps {accumulation} \
     --per_gpu_train_batch_size {batch_size} \
-    --extra_embedding_dim {extra_embedding_dim} \
     --job_id {job_id} \
-    --switch_type {switch_type} \
     --learning_rate {learning_rate} \
-    --generator_loss_constants {generator_loss_constants} \
-    --prefix_input_type {roberta_input_type} \
-    --context_input_type variable_{context_input_type} \
-    --context_noise {context_noise} \
+    --prefix_input_type {prefix_input_type} \
     --global_dense_feature_list {global_dense_feature_list} \
     --specific_style_train {specific_style_train} \
     --optimizer {optimizer}

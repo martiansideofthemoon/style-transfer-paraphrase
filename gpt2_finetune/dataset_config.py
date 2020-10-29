@@ -32,17 +32,7 @@ DATASET_CONFIG = {
             {"key": "ed_bucket", "position": 7, "tokenize": False, "metadata": True}
         ]
     },
-    "paranmt/filter_lendiff_less_3_english_only": BASE_CONFIG,
-    "paranmt/filter_lendiff_less_5_english_only": BASE_CONFIG,
-    "paranmt/filter_lendiff_less_5_english_only_truncate_300000": BASE_CONFIG,
-    "paranmt/no_trigram_filter/filter_lendiff_less_5_english_only_truncate_74554": BASE_CONFIG,
-    "paranmt/filter_kt_less_0": BASE_CONFIG,
-    "paranmt/filter_kt_less_0.5": BASE_CONFIG,
-    "paranmt/filter_and_kt_less_precision_less_0.0_0.25": BASE_CONFIG,
-    "paranmt/filter_and_kt_less_precision_less_0.0_0.5": BASE_CONFIG,
-    "paranmt/filter_and_kt_less_precision_less_0.0_0.25_no_czech": BASE_CONFIG,
-    "paranmt/filter_and_kt_less_precision_less_0.0_0.5_no_czech": BASE_CONFIG,
-    "paranmt/filter_and_kt_less_precision_less_lendiff_less_0.0_0.5_5_english_only": BASE_CONFIG,
+    "datasets/paranmt_filtered": BASE_CONFIG,
     "shakespeare/supervised": {
         "keys": [
             {"key": "sent1_tokens", "position": 0, "tokenize": True, "metadata": False},
@@ -63,10 +53,6 @@ DATASET_CONFIG = {
     "shakespeare/unsupervised_filtered": BASE_CONFIG,
     "shakespeare/unsupervised_prior": BASE_CONFIG,
     "shakespeare/unsupervised_prior_detokenize": BASE_CONFIG,
-    # Shakespeare + AAE + english tweets
-    "dataset_pools/shakespeare_aae_tweets": BASE_CONFIG,
-    "dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_joyce_congress-bills": BASE_CONFIG,
-    "dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_switchboard": BASE_CONFIG,
     "formality/formality": BASE_CONFIG,
     "formality/formality_prior": BASE_CONFIG,
     "formality/formality_prior2_lowercase": BASE_CONFIG,

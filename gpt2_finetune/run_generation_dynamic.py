@@ -33,7 +33,7 @@ from data_utils import MAX_ROBERTA_LENGTH
 from style_dataset import (InverseParaphraseDatasetText,
                            ParaphraseDatasetText)
 from transformers import GPT2Config, GPT2LMHeadModel, GPT2Tokenizer
-from utils import bpe_to_srl, class_number_to_str, init_gpt2_model, recall
+from utils import class_number_to_str, init_gpt2_model, recall
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ def set_seed(args):
 
 
 def load_and_cache_examples(args, tokenizer):
-    if args.context_input_type.endswith("_srl_input") or args.context_input_type.endswith("_roberta_input"):
+    if args.prefix_input_type.startswith("original"):
         dataset = InverseParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
@@ -62,7 +62,7 @@ def load_and_cache_examples(args, tokenizer):
             evaluate=True,
             split=args.eval_split
         )
-    elif args.context_input_type.endswith("_paraphrase"):
+    else:
         dataset = ParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
@@ -167,15 +167,8 @@ def main():
             true_text = tokenizer.decode(sentences[sent_num, init_context_size:].tolist(), clean_up_tokenization_spaces=True, skip_special_tokens=True)
             generated_text = tokenizer.decode(output_sequence, clean_up_tokenization_spaces=True, skip_special_tokens=True)
 
-            if args.context_input_type.endswith("_srl_input"):
-                context = bpe_to_srl(sentences[sent_num, :init_context_size].tolist(), segments[sent_num, dense_length:dense_length + init_context_size].tolist(), tokenizer)
-                recall_score = recall(true_text, context)
-            elif args.context_input_type.endswith("_paraphrase") or args.context_input_type.endswith("_roberta_input") or args.context_input_type.endswith("_simplewiki"):
-                context = tokenizer.decode(sentences[sent_num, :init_context_size].tolist(), clean_up_tokenization_spaces=True, skip_special_tokens=True)
-                recall_score = recall(true_text, context)
-            else:
-                context = ""
-                recall_score = 0.0
+            context = tokenizer.decode(sentences[sent_num, :init_context_size].tolist(), clean_up_tokenization_spaces=True, skip_special_tokens=True)
+            recall_score = recall(true_text, context)
 
             output_log["true_text"].append(true_text)
             output_log["generated_text"].append(generated_text)

@@ -1,0 +1,83 @@
+<!-- You must include this JavaScript file -->
+<script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+
+<!-- For the full list of available Crowd HTML Elements and their input/output documentation,
+      please refer to https://docs.aws.amazon.com/sagemaker/latest/dg/sms-ui-template-reference.html -->
+
+<!-- You must include crowd-form so that your task submits answers to MTurk -->
+<crowd-form answer-format="flatten-objects">
+
+    <!-- The crowd-classifier element will create a tool for the Worker to select the
+           correct answer to your question -->
+    <crowd-classifier 
+      name="semantic-similarity"
+      categories="['no paraphrase relationship', 'approximately the same meaning, but the rewritten sentence is ungrammatical', 'approximately the same meaning and the rewritten sentence is grammatical']"
+      header="What is the paraphrase relationship between the rewritten sentence and the original?"
+    >
+      <classification-target>
+        <p>
+            <strong>orignal sentence: </strong>
+
+            <!-- The first text you to compare will be substituted for the "text1" variable 
+                   when you publish a batch with a CSV input file containing multiple text items  -->
+            ${text1}
+
+        </p>
+
+        <p>
+            <strong>rewritten sentence: </strong>
+
+            <!-- The second text you to compare will be substituted for the "text2" variable 
+                   when you publish a batch with a CSV input file containing multiple text items  -->
+            ${text2}
+        </p>
+
+      </classification-target>
+
+     <!-- Use the short-instructions section for quick instructions that the Worker
+            will see while working on the task. Including some basic examples of 
+            good and bad answers here can help get good results. You can include 
+            any HTML here. -->
+      <short-instructions>
+        What is the paraphrase relationship between the rewritten sentence and the original?
+      </short-instructions>
+
+      <!-- Use the full-instructions section for more detailed instructions that the 
+            Worker can open while working on the task. Including more detailed 
+            instructions and additional examples of good and bad answers here can
+            help get good results. You can include any HTML here. -->
+      <full-instructions header="Semantic Similarity Instructions">
+        <strong>CAUTION: Make sure you spend enough time reading the sentences and fully understanding them. We will reject spammers.</strong><br /><br /><br />
+
+        In this task, you will be provided two sentences, one of which is a rewritten version of the other.
+        Your job is to determine whether the rewritten sentence is a paraphrase of the original sentence.
+        Paraphrases are sentences that convey approximately the same meaning using different words; in other words, the two sentences don't have to mean exactly the same thing, but the important details should match.
+        If the two sentences mean very different things, select the first choice, <strong style="color: rgb(226, 80, 65);">No paraphrase relationship</strong>.<br /><br />
+
+        If the two sentences are paraphrases, you will be asked to also determine the grammaticality of the rewritten sentence.
+        If the rewritten sentence contains serious grammatical errors that hurt its readability (you can overlook minor errors), select <strong style="color: rgb(41, 105, 176);">Approximately the same meaning, but the rewritten sentence is ungrammatical</strong>.
+        Finally, if the rewritten sentence is grammatically correct, select the third option, <strong style="color: rgb(0, 168, 133);">Approximately the same meaning and the rewritten sentence is grammatical.</strong><br /><br />
+
+        Here are some examples:<br /></br />
+
+        <strong style="color: rgb(226, 80, 65);">No paraphrase relationship</strong>:<br />
+
+            original sentence:you want to sell the guns ?</br />
+            rewritten sentence: where do you want the people ?</br />
+            original sentence: please stay behind the barricade , ma'am .</br />
+            rewritten sentence: please get on top of the roadblock , ma'am .</br /></br />
+
+        <strong style="color: rgb(41, 105, 176);">Approximately the same meaning, but the rewritten sentence is ungrammatical</strong>:<br />
+
+            original sentence: these guys seem great to knock back a beer with but they 're simply not funny performers .</br />
+            rewritten sentence: because these guys look great to have a beer with is just not funny artists .</br /></br />
+
+        <strong style="color: rgb(0, 168, 133);">Approximately the same meaning and the rewritten sentence is grammatical</strong>:</br />
+
+            original sentence: smithback looked around quickly , his eyes searching the deserted room .</br />
+            rewritten sentence: smithback looked around quickly , scanning the deserted men's room .</br /></br />
+
+      </full-instructions>
+
+    </crowd-classifier>
+</crowd-form>

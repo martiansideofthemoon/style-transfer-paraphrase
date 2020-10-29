@@ -7,9 +7,6 @@ python -m torch.distributed.launch --nproc_per_node=1 gpt2_finetune/run_lm_finet
     --model_name_or_path=gpt2-medium \
     --data_dir=$DATA_DIR \
     --do_eval \
-    --roberta_pretrained=$ROBERTA_BASE \
-    --content_aggregation=1000 \
-    --content_aggregation_type=bow \
     --extra_embedding_dim=768 \
     --save_steps 1000 \
     --logging_steps 1 \
@@ -24,8 +21,7 @@ python -m torch.distributed.launch --nproc_per_node=1 gpt2_finetune/run_lm_finet
     --do_train \
     --switch_type constant \
     --learning_rate 5e-5 \
-    --context_input_type "variable_roberta_input" \
-    --roberta_input_type "variable_paraphrase_250" \
+    --prefix_input_type "paraphrase_250" \
     --context_noise "none" \
     --global_dense_feature_list "none" \
     --eval_all_checkpoints \

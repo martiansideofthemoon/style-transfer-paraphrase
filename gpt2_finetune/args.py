@@ -8,15 +8,12 @@ def get_parser(parser_type, model_classes=None, all_models=None):
     parser.add_argument("--data_dir", default=None, type=str, required=True,
                         help="The input dataset directory.")
 
-    parser.add_argument('--extra_embedding_dim', type=int, default=1536,
+    parser.add_argument('--extra_embedding_dim', type=int, default=768,
                         help="Size of linear layer used for projecting extra embeddings.")
 
     parser.add_argument("--no_cuda", action='store_true',
                         help="Avoid using CUDA when available")
-    parser.add_argument("--block_size", default=1024, type=int,
-                        help="Optional input sequence length after tokenization."
-                             "The training dataset will be truncated in block of this size for training."
-                             "Default to the model max input length for single sentence inputs (take into account special tokens).")
+
     parser.add_argument("--local_rank", type=int, default=-1,
                         help="For distributed training: local_rank")
     parser.add_argument('--seed', type=int, default=42,
@@ -28,9 +25,10 @@ def get_parser(parser_type, model_classes=None, all_models=None):
                         help="Set this flag if you are using an uncased model.")
     parser.add_argument("--job_id", type=str, default="test")
 
-    parser.add_argument("--context_input_type", type=str, default="variable_srl_input")
-    parser.add_argument("--prefix_input_type", type=str, default="nofilter",
-                        help="During inverse paraphrasing, the text used as prefix (often paraphrase model ID).")
+    parser.add_argument("--target_style_override", type=str, default="none")
+    parser.add_argument("--prefix_input_type", type=str, default="original",
+                        help=("The text used as context for generation, which is 'original' for paraphrasing and a "
+                              "paraphrase model ID for inverse paraphrasing."))
 
     parser.add_argument("--global_dense_feature_list", type=str, default="none")
     parser.add_argument("--specific_style_train", type=str, default="-1")
@@ -88,22 +86,14 @@ def get_parser(parser_type, model_classes=None, all_models=None):
 
         parser.add_argument('--overwrite_output_dir', action='store_true',
                             help="Overwrite the content of the output directory")
-        parser.add_argument('--overwrite_cache', action='store_true',
-                            help="Overwrite the cached training and evaluation sets")
 
         parser.add_argument('--fp16', action='store_true',
                             help="Whether to use 16-bit (mixed) precision (through NVIDIA apex) instead of 32-bit")
         parser.add_argument('--fp16_opt_level', type=str, default='O1',
                             help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3']."
                                  "See details at https://nvidia.github.io/apex/amp.html")
-        parser.add_argument('--server_ip', type=str, default='', help="For distant debugging.")
-        parser.add_argument('--server_port', type=str, default='', help="For distant debugging.")
-
-        parser.add_argument('--switch_type', type=str, default="constant", help="Type of switching between generator and discriminator")
         parser.add_argument("--learning_rate", default="5e-5", type=str,
                             help="The initial learning rate for Adam.")
-        parser.add_argument("--generator_loss_constants", default="1,1,1", type=str,
-                            help="The interpolation constants used to combine the loss terms in the generator objective.")
     else:
         parser.add_argument("--model_type", default=None, type=str, required=True,
                             help="Model type selected in the list: " + ", ".join(model_classes.keys()))

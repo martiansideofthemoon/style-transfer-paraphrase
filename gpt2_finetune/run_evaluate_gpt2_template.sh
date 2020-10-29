@@ -22,9 +22,6 @@ python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/{module}.py \
     --data_dir=$DATA_DIR \
     --do_eval \
     --do_delete_old \
-    --roberta_pretrained={roberta_dir} \
-    --content_aggregation={content_aggregation} \
-    --content_aggregation_type={content_aggregation_type} \
     --save_steps 1000 \
     --logging_steps 1000 \
     --save_total_limit 5 \
@@ -33,12 +30,9 @@ python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/{module}.py \
     --num_train_epochs {num_epochs} \
     --gradient_accumulation_steps {accumulation} \
     --per_gpu_train_batch_size {batch_size} \
-    --extra_embedding_dim {extra_embedding_dim} \
-    --limit_examples 100 \
+    --limit_examples 1000 \
     --job_id {job_id} \
-    --switch_type {switch_type} \
     --learning_rate {learning_rate} \
-    --context_input_type variable_{context_input_type} \
     --prefix_input_type {prefix_input_type} \
     --global_dense_feature_list {global_dense_feature_list} \
     --specific_style_train {specific_style_train}

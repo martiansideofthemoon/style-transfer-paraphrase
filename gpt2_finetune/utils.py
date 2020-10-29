@@ -45,42 +45,6 @@ def rindex(mylist, myvalue):
     return len(mylist) - mylist[::-1].index(myvalue) - 1
 
 
-def bpe_to_srl(tag_str, tag_ids, tokenizer):
-    assert len(tag_ids) == len(tag_str)
-
-    curr_tag_id = tag_ids[0]
-    output_str = ""
-    curr_tag_str = []
-
-    for tid, ts in zip(tag_ids, tag_str):
-        if tid != curr_tag_id:
-            output_str += " " + tokenizer.decode(curr_tag_id) + " " + tokenizer.decode(curr_tag_str)
-            curr_tag_id = tid
-            curr_tag_str = [ts]
-        else:
-            curr_tag_str.append(ts)
-    return " ".join(output_str.split())
-
-
-def get_new_update_type(args, global_step, update_type):
-    switch_type = args.switch_type
-
-    if switch_type == "constant":
-        return "generator"
-    elif switch_type.startswith("every_"):
-        frequency = int(switch_type[switch_type.index("_") + 1:])
-
-        # Switch the update type if it's the correct moment to do so
-        if global_step % frequency == 0:
-            new_update_type = "generator" if update_type == "discriminator" else "discriminator"
-            return new_update_type
-        else:
-            return update_type
-
-    else:
-        raise ValueError("Invalid value for args.switch_type")
-
-
 def init_gpt2_model(checkpoint_dir, args, model_class, tokenizer_class=None):
     """Load a trained model and vocabulary that you have fine-tuned."""
 
@@ -101,7 +65,7 @@ class GPT2ParentModule(nn.Module):
         self.args = args
         self.gpt2 = gpt2
 
-    def forward(self, batch, update_type="generator"):
+    def forward(self, batch):
         args = self.args
         gpt2 = self.gpt2
 
@@ -116,20 +80,19 @@ class GPT2ParentModule(nn.Module):
             prefix_input_vectors = global_dense_vectors
 
         gpt2.train()
-        with torch.set_grad_enabled(update_type == "generator"):
-            if prefix_input_vectors is None:
-                outputs = gpt2(
-                    input_ids=sentences,
-                    token_type_ids=segments,
-                    labels=labels
-                )
-            else:
-                outputs = gpt2(
-                    input_ids=sentences,
-                    token_type_ids=segments,
-                    labels=labels,
-                    prefix_input_vectors=prefix_input_vectors
-                )
+        if prefix_input_vectors is None:
+            outputs = gpt2(
+                input_ids=sentences,
+                token_type_ids=segments,
+                labels=labels
+            )
+        else:
+            outputs = gpt2(
+                input_ids=sentences,
+                token_type_ids=segments,
+                labels=labels,
+                prefix_input_vectors=prefix_input_vectors
+            )
 
         loss = {
             "lm": outputs[0]
@@ -170,7 +133,8 @@ class GPT2ParentModule(nn.Module):
         return lm_loss.mean().item()
 
     def generate(self, gpt2_sentences, segments, global_dense_vectors=None,
-                 init_context_size=1, eos_token_id=None, get_scores=False, interpolation=None):
+                 init_context_size=1, eos_token_id=None, get_scores=False,
+                 interpolation=None, top_p=None):
         args = self.args
         gpt2 = self.gpt2
 
@@ -204,7 +168,7 @@ class GPT2ParentModule(nn.Module):
                 length=generation_length,
                 temperature=args.temperature,
                 top_k=args.top_k,
-                top_p=args.top_p,
+                top_p=top_p or args.top_p,
                 get_scores=True,
                 interpolation=interpolation
             )
