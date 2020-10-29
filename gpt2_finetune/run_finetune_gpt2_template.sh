@@ -22,7 +22,7 @@ cp $BASE_DIR/*.py $BASE_DIR/saved_models/model_{job_id}_code
 
 echo $HOSTNAME
 
-python -m torch.distributed.launch --nproc_per_node={ngpus} $BASE_DIR/{module}.py \
+python -m torch.distributed.launch --nproc_per_node={ngpus} $BASE_DIR/run_lm_finetuning.py \
     --output_dir=$BASE_DIR/saved_models/model_{job_id} \
     --model_type=gpt2 \
     --model_name_or_path={model_name} \

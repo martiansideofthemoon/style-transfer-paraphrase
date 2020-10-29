@@ -27,10 +27,12 @@ import shutil
 import subprocess
 
 import numpy as np
+import time
 import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from tqdm import tqdm, trange
+from collections import defaultdict
 
 from args import get_parser
 from data_utils import MAX_ROBERTA_LENGTH
@@ -64,7 +66,7 @@ SPECIAL_TOKENS = {
 
 
 def load_and_cache_examples(args, tokenizer, evaluate=False):
-    if args.prefix_input_type.startswith("original"):
+    if not args.prefix_input_type.startswith("original"):
         dataset = InverseParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,
@@ -118,7 +120,7 @@ def _rotate_checkpoints(args, checkpoint_prefix, use_mtime=False):
         shutil.rmtree(checkpoint)
 
 
-def save_model(gpt2_model, output_dir, args, tokenizer=None):
+def save_model(gpt2_model, output_dir, args, global_step, tokenizer=None):
     # Take care of distributed/parallel training
     model_to_save = gpt2_model.gpt2
     model_to_save = model_to_save.module if hasattr(model_to_save, 'module') else model_to_save
@@ -126,6 +128,9 @@ def save_model(gpt2_model, output_dir, args, tokenizer=None):
     model_to_save.save_pretrained(output_dir)
     logger.info("Saving model checkpoint to %s", output_dir)
     torch.save(args, os.path.join(output_dir, 'training_args.bin'))
+
+    with open(os.path.join(output_dir, "global_step.txt"), "w") as f:
+        f.write(str(global_step) + "\n")
 
     if tokenizer:
         tokenizer.save_pretrained(output_dir)
@@ -279,7 +284,7 @@ def train(args, gpt2_model, train_dataset, tokenizer):
                     if not os.path.exists(output_dir):
                         os.makedirs(output_dir)
 
-                    save_model(gpt2_model, output_dir, args, tokenizer=tokenizer)
+                    save_model(gpt2_model, output_dir, args, global_step, tokenizer=tokenizer)
 
                     _rotate_checkpoints(args, checkpoint_prefix)
 
@@ -419,67 +424,83 @@ def main():
         global_step, tr_loss = train(args, gpt2_model, train_dataset, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
-    # Saving best-practices: if you use save_pretrained for the model and tokenizer, you can reload them using from_pretrained()
     if args.do_train and (args.local_rank == -1 or torch.distributed.get_rank() == 0):
-        # Create output directory if needed
-        if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
-            os.makedirs(args.output_dir)
 
-        save_model(gpt2_model, args.output_dir, args, tokenizer)
+        output_dir = os.path.join(args.output_dir, 'checkpoint-{}'.format(global_step))
+        if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
+            os.makedirs(output_dir)
+        save_model(gpt2_model, args.output_dir, args, global_step, tokenizer)
+
         gpt2_model, tokenizer = init_gpt2_model(checkpoint_dir=args.output_dir,
                                                 args=args,
                                                 model_class=model_class,
                                                 tokenizer_class=tokenizer_class)
 
     # Evaluation
-    results = []
     if args.do_eval and args.local_rank in [-1, 0]:
-        checkpoints = []
-        if args.eval_all_checkpoints:
-            checkpoints = list(os.path.dirname(c) for c in sorted(glob.glob(args.output_dir + '/checkpoint-*/' + WEIGHTS_NAME, recursive=True)))
-            logging.getLogger("transformers.modeling_utils").setLevel(logging.WARN)  # Reduce logging
-            # Sort checkpoints according to the step number
-            if len(checkpoints) > 0:
-                checkpoints.sort(key=lambda x: int(x.split("-")[-1]))
+        eval_done = False
+        all_results = defaultdict(list)
+        while not eval_done:
+            results = []
+            checkpoints = []
+            if args.eval_all_checkpoints:
+                checkpoints = list(os.path.dirname(c) for c in sorted(glob.glob(args.output_dir + '/checkpoint-*/' + WEIGHTS_NAME, recursive=True)))
+                logging.getLogger("transformers.modeling_utils").setLevel(logging.WARN)  # Reduce logging
+                # Sort checkpoints according to the step number
+                if len(checkpoints) > 0:
+                    checkpoints.sort(key=lambda x: int(x.split("-")[-1]))
 
-        if os.path.exists("{}/pytorch_model.bin".format(args.output_dir)):
-            checkpoints.append(args.output_dir)
+            if os.path.exists("{}/pytorch_model.bin".format(args.output_dir)):
+                checkpoints.append(args.output_dir)
 
-        logger.info("Evaluate the following checkpoints: %s", checkpoints)
-        for checkpoint in checkpoints:
-            global_step = checkpoint.split('-')[-1] if len(checkpoints) > 1 else ""
-            prefix = checkpoint.split('/')[-1] if checkpoint.find('checkpoint') != -1 else ""
+            logger.info("Evaluate the following checkpoints: %s", checkpoints)
+            for checkpoint in checkpoints:
+                prefix = checkpoint.split('/')[-1] if checkpoint.find('checkpoint') != -1 else ""
 
-            gpt2_model, _ = init_gpt2_model(checkpoint_dir=checkpoint,
-                                            args=args,
-                                            model_class=model_class)
+                gpt2_model, _ = init_gpt2_model(checkpoint_dir=checkpoint,
+                                                args=args,
+                                                model_class=model_class)
 
-            result = evaluate(args, gpt2_model, tokenizer, prefix=prefix)
-            results.append((checkpoint, result))
+                result = evaluate(args, gpt2_model, tokenizer, prefix=prefix)
+                results.append((checkpoint, result))
 
-        results.sort(key=lambda x: x[1]["perplexity"].item())
+                if "checkpoint" in checkpoint:
+                    all_results[checkpoint].append(result["perplexity"])
 
-        if args.do_train or args.do_delete_old:
-            logger.info("Deleting other checkpoints...")
-            # delete all but the top-3 checkpoints
-            for res in results[3:]:
-                if res[0].split("/")[-1].startswith("checkpoint"):
-                    logger.info("Deleting {}...".format(res[0]))
-                    shutil.rmtree(res[0])
-            # move top checkpoint to root directory
-            if results[0][0].split("/")[-1].startswith("checkpoint"):
-                command = "mv {}/* {}".format(results[0][0], args.output_dir)
-                logger.info("executing {}...".format(command))
-                subprocess.check_output(command, shell=True)
-                command = "rm -rf {}".format(results[0][0])
-                logger.info("executing {}...".format(command))
-                subprocess.check_output(command, shell=True)
+            results.sort(key=lambda x: x[1]["perplexity"].item())
 
-        logger.info(
-            "Top checkpoints:\n{}".format(
-                "\n".join(["{:.4f} = {}".format(res[1]['perplexity'].item(), res[0].split("/")[-1]) for res in results])
+            if args.do_delete_old:
+                logger.info("Deleting other checkpoints...")
+                # delete all but the top save_total_limit checkpoints
+                for res in results[args.save_total_limit:]:
+                    if res[0].split("/")[-1].startswith("checkpoint"):
+                        logger.info("Deleting {}...".format(res[0]))
+                        shutil.rmtree(res[0])
+                # move top checkpoint to root directory
+                if len(results) > 0 and results[0][0].split("/")[-1].startswith("checkpoint"):
+                    command = "mv {}/* {}".format(results[0][0], args.output_dir)
+                    logger.info("executing {}...".format(command))
+                    subprocess.check_output(command, shell=True)
+                    command = "rm -rf {}".format(results[0][0])
+                    logger.info("executing {}...".format(command))
+                    subprocess.check_output(command, shell=True)
+
+            logger.info(
+                "Top checkpoints:\n{}".format(
+                    "\n".join(["{:.4f} = {}".format(res[1]['perplexity'].item(), res[0].split("/")[-1]) for res in results])
+                )
             )
-        )
+
+            if args.eval_frequency_min == 0:
+                eval_done = True
+            else:
+                logger.info("Sleeping for {:d} minutes...zzzz...".format(args.eval_frequency_min))
+                time.sleep(args.eval_frequency_min * 60)
+
+        all_results = [(k, v) for k, v in all_results.items()]
+        all_results.sort(lambda x: max(x[1]))
+        all_results = "\n".join(["{} = {}".format(x[0], x[1]) for x in all_results])
+        logger.info("All results summary:\n{}".format(all_results))
 
     return results
 

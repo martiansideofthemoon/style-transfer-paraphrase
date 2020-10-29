@@ -94,6 +94,7 @@ def get_parser(parser_type, model_classes=None, all_models=None):
                                  "See details at https://nvidia.github.io/apex/amp.html")
         parser.add_argument("--learning_rate", default="5e-5", type=str,
                             help="The initial learning rate for Adam.")
+        parser.add_argument("--eval_frequency_min", type=int, default=0)
     else:
         parser.add_argument("--model_type", default=None, type=str, required=True,
                             help="Model type selected in the list: " + ", ".join(model_classes.keys()))

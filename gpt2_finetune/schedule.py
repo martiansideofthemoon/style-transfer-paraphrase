@@ -13,7 +13,7 @@ class SafeDict(dict):
 
 
 def get_run_id():
-    filename = "logs/expts.txt"
+    filename = "gpt2_finetune/logs/expts.txt"
     if os.path.isfile(filename) is False:
         with open(filename, 'w') as f:
             f.write("")
@@ -31,8 +31,8 @@ other_dependencies = {
 }
 
 
-top_details = "GPT2-large model for shakespeare."
-hyperparameters = inverse_paraphrase
+top_details = "GPT2-large model for paraphrasing."
+hyperparameters = paraphrase
 
 run_id = int(get_run_id())
 key_hyperparameters = [x[0] for x in hyperparameters]
@@ -40,14 +40,15 @@ value_hyperparameters = [x[1] for x in hyperparameters]
 combinations = list(itertools.product(*value_hyperparameters))
 
 scripts = []
+eval_scripts = []
 
 for combo in combinations:
     # Write the scheduler scripts
-    with open("run_finetune_gpt2_template.sh", 'r') as f:
+    with open("gpt2_finetune/run_finetune_gpt2_template.sh", 'r') as f:
         schedule_script = f.read()
-    with open("run_generation_gpt2_template.sh", 'r') as f:
+    with open("gpt2_finetune/run_generation_gpt2_template.sh", 'r') as f:
         generation_script = f.read()
-    with open("run_evaluate_gpt2_template.sh", 'r') as f:
+    with open("gpt2_finetune/run_evaluate_gpt2_template.sh", 'r') as f:
         evaluate_script = f.read()
 
     combo = {k[0]: v for (k, v) in zip(key_hyperparameters, combo)}
@@ -84,19 +85,20 @@ for combo in combinations:
     evaluate_script += "\n"
 
     # Write schedule script
-    script_name = 'slurm-schedulers/schedule_%d.sh' % run_id
+    script_name = 'gpt2_finetune/slurm-schedulers/schedule_%d.sh' % run_id
     with open(script_name, 'w') as f:
         f.write(schedule_script)
 
-    generation_script_name = 'slurm-schedulers/generate_%d.sh' % run_id
+    generation_script_name = 'gpt2_finetune/slurm-schedulers/generate_%d.sh' % run_id
     with open(generation_script_name, 'w') as f:
         f.write(generation_script)
 
-    evaluate_script_name = 'slurm-schedulers/evaluate_%d.sh' % run_id
+    evaluate_script_name = 'gpt2_finetune/slurm-schedulers/evaluate_%d.sh' % run_id
     with open(evaluate_script_name, 'w') as f:
         f.write(evaluate_script)
 
     scripts.append(script_name)
+    eval_scripts.append(evaluate_script_name)
 
     # Making files executable
     subprocess.check_output('chmod +x %s' % script_name, shell=True)
@@ -108,7 +110,7 @@ for combo in combinations:
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M") + "\n" + \
         top_details + "\n" + \
         lower_details + "\n\n"
-    with open("logs/expts.txt", "a") as f:
+    with open("gpt2_finetune/logs/expts.txt", "a") as f:
         f.write(output)
     # For the next job
     run_id += 1
@@ -116,5 +118,9 @@ for combo in combinations:
 
 # schedule jobs
 for script in scripts:
+    command = "sbatch %s" % script
+    print(subprocess.check_output(command, shell=True))
+
+for script in eval_scripts:
     command = "sbatch %s" % script
     print(subprocess.check_output(command, shell=True))

@@ -54,7 +54,7 @@ def set_seed(args):
 
 
 def load_and_cache_examples(args, tokenizer):
-    if args.prefix_input_type.startswith("original"):
+    if not args.prefix_input_type.startswith("original"):
         dataset = InverseParaphraseDatasetText(
             tokenizer=tokenizer,
             args=args,

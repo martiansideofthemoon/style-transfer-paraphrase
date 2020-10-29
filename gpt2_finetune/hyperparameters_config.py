@@ -1,11 +1,9 @@
 paraphrase = [
-    [('module',), ['run_lm_finetuning_dynamic']],
-    [('generation_module',), ['run_generation_dynamic']],
     [('model_name',), ['gpt2-large']],
     [('dataset',), ["datasets/paranmt_filtered"]],
     [('batch_size',), [5]],
-    [('accumulation',), [2]],
-    [('num_epochs',), [3]],
+    [('accumulation',), [4]],
+    [('num_epochs',), [2]],
     [('beam_size',), [1]],
     [('eval_batch_size',), [1]],
     [('learning_rate',), ["5e-5"]],
@@ -21,8 +19,6 @@ paraphrase = [
 ]
 
 inverse_paraphrase = [
-    [('module',), ['run_lm_finetuning_dynamic']],
-    [('generation_module',), ['run_generation_dynamic']],
     [('model_name',), ['gpt2-large']],
     [('dataset',), ["shakespeare/unsupervised_prior_detokenize"]],
     [('batch_size',), [5]],

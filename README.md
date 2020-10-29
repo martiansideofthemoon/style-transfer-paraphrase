@@ -6,11 +6,15 @@ This repository is a work-in-progress, but we have released our human evaluation
 
 ## Dataset
 
-All datasets can be found on this [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing). Download and place the `paranmt_filtered` dataset as `datasets/paranmt_filtered`.
+All datasets will be added to this [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing). For now, you can download and place the `paranmt_filtered` dataset as `datasets/paranmt_filtered`.
+
+## Training
+
+To train the paraphrase model, run [`gpt2_finetune/examples/run_finetune_paraphrase.sh`](gpt2_finetune/examples/run_finetune_paraphrase.sh).
 
 ## Evaluation
 
-Please check [`evaluation/README.md`](evaluation/README.md).
+Please check [`evaluation/README.md`](evaluation/README.md) for details on our human evaluation setup.
 
 ## Citation
 

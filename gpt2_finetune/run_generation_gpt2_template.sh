@@ -74,7 +74,7 @@ do
 
     # kernprof -l gpt2_finetune/run_generation.py \
     # python gpt2_finetune/run_generation.py \
-    python -m torch.distributed.launch --nproc_per_node=8 gpt2_finetune/{generation_module}.py \
+    python -m torch.distributed.launch --nproc_per_node=8 gpt2_finetune/run_generation.py \
         --model_type=gpt2 \
         --data_dir=$DATA_DIR \
         --model_name_or_path=$GPT2_MODEL_DIR \
