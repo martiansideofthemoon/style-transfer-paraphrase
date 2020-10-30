@@ -14,11 +14,15 @@ All datasets will be added to this [Google Drive link](https://drive.google.com/
 
 ## Training
 
-To train the paraphrase model, run [`gpt2_finetune/examples/run_finetune_paraphrase.sh`](gpt2_finetune/examples/run_finetune_paraphrase.sh).
+To train the paraphrase model, run [`gpt2_finetune/examples/run_finetune_paraphrase.sh`](gpt2_finetune/examples/run_finetune_paraphrase.sh). To train the inverse paraphrasers for Shakespeare, check the two scripts in [`gpt2_finetune/examples/shakespeare`](gpt2_finetune/examples/shakespeare).
 
 ## Evaluation
 
-Please check [`evaluation/README.md`](evaluation/README.md) for details on our human evaluation setup.
+Please check [`evaluation/README.md`](evaluation/README.md) for more details.
+
+## Outputs from our model
+
+coming soon!
 
 ## Citation
 
