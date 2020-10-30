@@ -20,7 +20,7 @@ To train the paraphrase model, run [`gpt2_finetune/examples/run_finetune_paraphr
 
 Please check [`evaluation/README.md`](evaluation/README.md) for more details.
 
-## Outputs from our model
+## Outputs from STRAP
 
 coming soon!
 
