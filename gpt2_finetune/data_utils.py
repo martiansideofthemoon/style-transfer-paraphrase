@@ -138,7 +138,7 @@ def string_to_ids(text, tokenizer):
 
 def get_label_dict(data_dir):
     label_dict = {}
-    with open("{}-bin/label/dict.txt".format(data_dir)) as f:
+    with open("{}/dict.txt".format(data_dir)) as f:
         label_dict_lines = f.read().strip().split("\n")
     for i, x in enumerate(label_dict_lines):
         if x.startswith("madeupword"):

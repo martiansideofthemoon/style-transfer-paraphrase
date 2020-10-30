@@ -81,9 +81,6 @@ def get_parser(parser_type, model_classes=None, all_models=None):
                             help="Save checkpoint every X updates steps.")
         parser.add_argument('--save_total_limit', type=int, default=None,
                             help='Limit the total amount of checkpoints, delete the older checkpoints in the output_dir, does not delete by default')
-        parser.add_argument("--eval_all_checkpoints", action='store_true',
-                            help="Evaluate all checkpoints starting with the same prefix as model_name_or_path ending and ending with step number")
-
         parser.add_argument('--overwrite_output_dir', action='store_true',
                             help="Overwrite the content of the output directory")
 
@@ -95,6 +92,9 @@ def get_parser(parser_type, model_classes=None, all_models=None):
         parser.add_argument("--learning_rate", default="5e-5", type=str,
                             help="The initial learning rate for Adam.")
         parser.add_argument("--eval_frequency_min", type=int, default=0)
+        parser.add_argument("--eval_patience", type=int, default=10)
+        parser.add_argument("--evaluate_specific", type=str, default=None,
+                            help="Specify path to certain checkpoint if you only want to evaluate that checkpoint")
     else:
         parser.add_argument("--model_type", default=None, type=str, required=True,
                             help="Model type selected in the list: " + ", ".join(model_classes.keys()))

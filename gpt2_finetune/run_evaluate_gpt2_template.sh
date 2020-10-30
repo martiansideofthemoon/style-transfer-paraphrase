@@ -2,7 +2,7 @@
 #SBATCH --job-name=eval_gpt2_{job_id}
 #SBATCH -o gpt2_finetune/logs/log_eval_{job_id}.txt
 #SBATCH --time=167:00:00
-#SBATCH --partition=1080ti-long
+#SBATCH --partition=titanx-long
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=5
 #SBATCH --mem=45GB
@@ -25,7 +25,6 @@ python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/run_lm_finetunin
     --save_steps 1000 \
     --logging_steps 1000 \
     --save_total_limit 3 \
-    --eval_all_checkpoints \
     --evaluate_during_training \
     --num_train_epochs {num_epochs} \
     --gradient_accumulation_steps {accumulation} \

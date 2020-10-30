@@ -25,7 +25,6 @@ python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/run_lm_finetunin
     --save_steps 1000 \
     --logging_steps 1000 \
     --save_total_limit 3 \
-    --eval_all_checkpoints \
     --evaluate_during_training \
     --num_train_epochs 3 \
     --gradient_accumulation_steps 2 \

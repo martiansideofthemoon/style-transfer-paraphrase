@@ -20,7 +20,7 @@ paraphrase = [
 
 inverse_paraphrase = [
     [('model_name',), ['gpt2-large']],
-    [('dataset',), ["shakespeare/unsupervised_prior_detokenize"]],
+    [('dataset',), ["datasets/shakespeare"]],
     [('batch_size',), [5]],
     [('accumulation',), [2]],
     [('num_epochs',), [3]],
