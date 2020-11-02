@@ -5,19 +5,21 @@ import numpy as np
 
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-from gpt2_finetune.dataset_config import DATASET_CONFIG
+from gpt2_finetune.dataset_config import DATASET_CONFIG, BASE_CONFIG
 from gpt2_finetune.data_utils import update_config, Instance, get_label_dict
 
 from gpt2_finetune.utils import init_gpt2_model
 
 
-def get_config(data_dir):
-    valid_configs = []
-    for k, v in DATASET_CONFIG.items():
-        if data_dir.endswith(k):
-            valid_configs.append(v)
-    assert len(valid_configs) == 1
-    return valid_configs[0]
+# def get_config(data_dir):
+#     import pdb; pdb.set_trace()
+#     pass
+#     valid_configs = []
+#     for k, v in DATASET_CONFIG.items():
+#         if data_dir.endswith(k):
+#             valid_configs.append(v)
+#     assert len(valid_configs) == 1
+#     return valid_configs[0]
 
 
 class GPT2Generator(object):
@@ -25,7 +27,7 @@ class GPT2Generator(object):
         self.model_path = model_path
         self.args = torch.load("{}/training_args.bin".format(self.model_path))
         self.modify_args(upper_length, beam_size, top_p)
-        self.config = get_config(self.args.data_dir)
+        self.config = BASE_CONFIG
         update_config(self.args, self.config)
 
         if self.args.global_dense_feature_list != "none":

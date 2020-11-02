@@ -10,10 +10,8 @@ parser = argparse.ArgumentParser()
 # Base parameters
 parser.add_argument("--batch_size", default=64, type=int,
                     help="Batch size for inference.")
-parser.add_argument("--model_id", default=250, type=int,
-                    help="The model number for generation.")
-parser.add_argument("--top_p", default=0.6, type=float,
-                    help="Threshold for nucleus sampling.")
+parser.add_argument('--model_dir', default="paraphraser_gpt2_large", type=str)
+parser.add_argument('--top_p_value', default=0.6, type=float)
 parser.add_argument("--input", default=None, type=str, required=True,
                     help="The input file.")
 parser.add_argument("--output", default=None, type=str, required=True,
@@ -29,9 +27,7 @@ with open(args.input, "r") as f:
     data = f.read().strip().split("\n")
 
 print("Loading paraphraser...")
-paraphraser = GPT2Generator(
-    "/mnt/nfs/work1/miyyer/kalpesh/projects/style-embeddings/gpt2_finetune/saved_models/model_{:d}".format(args.model_id)
-)
+paraphraser = GPT2Generator(args.model_dir)
 paraphraser.modify_p(top_p=args.top_p)
 
 outputs = []

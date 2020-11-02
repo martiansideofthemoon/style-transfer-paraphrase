@@ -44,6 +44,9 @@ class Instance(object):
             self.sent2_tokens = self.sent2_tokens[:max_suffix_length]
 
     def shuffle_prefix_suffix(self):
+        if not hasattr(self.args, "prefix_input_type"):
+            # Keeping this check for backward compatibility with previous models
+            return
         if self.args.prefix_input_type == "original_shuffle":
             # shuffle with 50% probability
             if random.random() <= 0.5:

@@ -3,7 +3,7 @@ import numpy as np
 import tqdm
 import torch
 
-from test_sim.test_sim import find_similarity
+from evaluation.similarity.test_sim import find_similarity
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--generated_path', type=str, default=None)
