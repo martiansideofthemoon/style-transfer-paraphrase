@@ -13,7 +13,7 @@ class SafeDict(dict):
 
 
 def get_run_id():
-    filename = "gpt2_finetune/logs/expts.txt"
+    filename = "style_paraphrase/logs/expts.txt"
     if os.path.isfile(filename) is False:
         with open(filename, 'w') as f:
             f.write("")
@@ -44,11 +44,11 @@ eval_scripts = []
 
 for combo in combinations:
     # Write the scheduler scripts
-    with open("gpt2_finetune/run_finetune_gpt2_template.sh", 'r') as f:
+    with open("style_paraphrase/run_finetune_gpt2_template.sh", 'r') as f:
         schedule_script = f.read()
-    with open("gpt2_finetune/run_generation_gpt2_template.sh", 'r') as f:
+    with open("style_paraphrase/run_generation_gpt2_template.sh", 'r') as f:
         generation_script = f.read()
-    with open("gpt2_finetune/run_evaluate_gpt2_template.sh", 'r') as f:
+    with open("style_paraphrase/run_evaluate_gpt2_template.sh", 'r') as f:
         evaluate_script = f.read()
 
     combo = {k[0]: v for (k, v) in zip(key_hyperparameters, combo)}
@@ -85,15 +85,15 @@ for combo in combinations:
     evaluate_script += "\n"
 
     # Write schedule script
-    script_name = 'gpt2_finetune/slurm-schedulers/schedule_%d.sh' % run_id
+    script_name = 'style_paraphrase/slurm-schedulers/schedule_%d.sh' % run_id
     with open(script_name, 'w') as f:
         f.write(schedule_script)
 
-    generation_script_name = 'gpt2_finetune/slurm-schedulers/generate_%d.sh' % run_id
+    generation_script_name = 'style_paraphrase/slurm-schedulers/generate_%d.sh' % run_id
     with open(generation_script_name, 'w') as f:
         f.write(generation_script)
 
-    evaluate_script_name = 'gpt2_finetune/slurm-schedulers/evaluate_%d.sh' % run_id
+    evaluate_script_name = 'style_paraphrase/slurm-schedulers/evaluate_%d.sh' % run_id
     with open(evaluate_script_name, 'w') as f:
         f.write(evaluate_script)
 
@@ -110,7 +110,7 @@ for combo in combinations:
         datetime.datetime.now().strftime("%Y-%m-%d %H:%M") + "\n" + \
         top_details + "\n" + \
         lower_details + "\n\n"
-    with open("gpt2_finetune/logs/expts.txt", "a") as f:
+    with open("style_paraphrase/logs/expts.txt", "a") as f:
         f.write(output)
     # For the next job
     run_id += 1

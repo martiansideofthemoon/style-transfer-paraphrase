@@ -5,21 +5,10 @@ import numpy as np
 
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-from gpt2_finetune.dataset_config import DATASET_CONFIG, BASE_CONFIG
-from gpt2_finetune.data_utils import update_config, Instance, get_label_dict
+from style_paraphrase.dataset_config import DATASET_CONFIG, BASE_CONFIG
+from style_paraphrase.data_utils import update_config, Instance, get_label_dict
 
-from gpt2_finetune.utils import init_gpt2_model
-
-
-# def get_config(data_dir):
-#     import pdb; pdb.set_trace()
-#     pass
-#     valid_configs = []
-#     for k, v in DATASET_CONFIG.items():
-#         if data_dir.endswith(k):
-#             valid_configs.append(v)
-#     assert len(valid_configs) == 1
-#     return valid_configs[0]
+from style_paraphrase.utils import init_gpt2_model
 
 
 class GPT2Generator(object):

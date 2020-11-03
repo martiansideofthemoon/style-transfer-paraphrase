@@ -3,7 +3,7 @@ import logging
 import sys
 import torch
 
-from gpt2_finetune.inference_utils import GPT2Generator
+from style_paraphrase.inference_utils import GPT2Generator
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_dir', default="paraphraser_gpt2_large", type=str)

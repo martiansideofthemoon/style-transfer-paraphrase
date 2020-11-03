@@ -2,7 +2,11 @@
 
 ### Accuracy
 
-We use a RoBERTa-large classifier to check style transfer accuracy. Check the `shakespeare_classifier` model from the [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing) and place it as `accuracy/shakespeare_classifier`.
+We use RoBERTa-large classifiers to check style transfer accuracy. Check the pretrained models in this [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing) and place them under `accuracy`. Consider using [`gdown`](https://github.com/wkentaro/gdown) for downloading large files easily. Your final folder structure should look like (depending on the datasets you are interested in),
+
+* `accuracy/shakespeare_classifier`
+* `accuracy/formality_classifier`
+* `accuracy/cds_classifier`
 
 ### Similarity
 
@@ -11,6 +15,10 @@ We use the SIM model from Wieting et al. 2019 ([paper](https://www.aclweb.org/an
 ## Fluency
 
 We use a RoBERTa-large classifier trained on the [CoLA corpus](https://nyu-mll.github.io/CoLA) to evaluate fluency of generations. Make sure to download the `cola_classifier` model from the [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing) and place it as `fluency/cola_classifier`.
+
+## Running Evaluation
+
+From the root folder, run `style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh shakespeare_models/model_300 shakespeare_models/model_299 paraphrase_gpt2_large`.
 
 ### Human Evaluation
 

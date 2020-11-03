@@ -1,8 +1,8 @@
 export DATA_DIR=formality/formality_prior_detokenize
-rm -rf gpt2_finetune/saved_models/test_inverse_paraphrase
+rm -rf style_paraphrase/saved_models/test_inverse_paraphrase
 
-python -m torch.distributed.launch --nproc_per_node=1 gpt2_finetune/run_lm_finetuning_dynamic.py \
-    --output_dir=gpt2_finetune/saved_models/test_dynamic_roberta \
+python -m torch.distributed.launch --nproc_per_node=1 style_paraphrase/run_lm_finetuning_dynamic.py \
+    --output_dir=style_paraphrase/saved_models/test_dynamic_roberta \
     --model_type=gpt2 \
     --model_name_or_path=gpt2-medium \
     --data_dir=$DATA_DIR \

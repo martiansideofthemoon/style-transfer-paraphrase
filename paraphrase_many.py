@@ -3,7 +3,7 @@ import sys
 import torch
 import tqdm
 
-from gpt2_finetune.inference_utils import GPT2Generator
+from style_paraphrase.inference_utils import GPT2Generator
 
 parser = argparse.ArgumentParser()
 

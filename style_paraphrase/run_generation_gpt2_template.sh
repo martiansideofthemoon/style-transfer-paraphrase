@@ -1,6 +1,6 @@
 #!/bin/sh
 #SBATCH --job-name=generate_gpt2_{job_id}
-#SBATCH -o gpt2_finetune/logs/log_generate_{job_id}.txt
+#SBATCH -o style_paraphrase/logs/log_generate_{job_id}.txt
 #SBATCH --time=167:00:00
 #SBATCH --partition=2080ti-long
 #SBATCH --gres=gpu:8
@@ -11,7 +11,7 @@
 # Experiment Details :- {top_details}
 # Run Details :- {lower_details}
 
-GPT2_MODEL_DIR=gpt2_finetune/saved_models/model_{job_id}
+GPT2_MODEL_DIR=style_paraphrase/saved_models/model_{job_id}
 DATA_DIR={dataset}
 BEAM_SIZE={beam_size}
 TOP_P=0.0
@@ -72,9 +72,9 @@ do
     mkdir -p $GENERATION_OUTPUT_DIR/results
     mkdir -p $GENERATION_OUTPUT_DIR/html
 
-    # kernprof -l gpt2_finetune/run_generation.py \
-    # python gpt2_finetune/run_generation.py \
-    python -m torch.distributed.launch --nproc_per_node=8 gpt2_finetune/run_generation.py \
+    # kernprof -l style_paraphrase/run_generation.py \
+    # python style_paraphrase/run_generation.py \
+    python -m torch.distributed.launch --nproc_per_node=8 style_paraphrase/run_generation.py \
         --model_type=gpt2 \
         --data_dir=$DATA_DIR \
         --model_name_or_path=$GPT2_MODEL_DIR \
@@ -120,23 +120,23 @@ do
     cp $GENERATION_OUTPUT_DIR/original_styles_all.txt $GENERATION_OUTPUT_DIR/final/original_styles_unique.txt
     cp $GENERATION_OUTPUT_DIR/metadata_all.txt $GENERATION_OUTPUT_DIR/final/metadata_unique.txt
 
-    MOSESDECODER="mosesdecoder" gpt2_finetune/scripts/multi-bleu-wrapper.sh $GENERATION_OUTPUT_DIR/final/generated_unique.txt $GENERATION_OUTPUT_DIR/final/reference_unique.txt 2>&1 | tee $GENERATION_OUTPUT_DIR/results/multibleu.txt
+    MOSESDECODER="mosesdecoder" style_paraphrase/scripts/multi-bleu-wrapper.sh $GENERATION_OUTPUT_DIR/final/generated_unique.txt $GENERATION_OUTPUT_DIR/final/reference_unique.txt 2>&1 | tee $GENERATION_OUTPUT_DIR/results/multibleu.txt
 
-    MOSESDECODER="mosesdecoder" gpt2_finetune/scripts/sacrebleu-wrapper.sh $GENERATION_OUTPUT_DIR/final/generated_unique.txt en en $GENERATION_OUTPUT_DIR/final/reference_unique.txt 2>&1 | tee $GENERATION_OUTPUT_DIR/results/sacrebleu.txt
+    MOSESDECODER="mosesdecoder" style_paraphrase/scripts/sacrebleu-wrapper.sh $GENERATION_OUTPUT_DIR/final/generated_unique.txt en en $GENERATION_OUTPUT_DIR/final/reference_unique.txt 2>&1 | tee $GENERATION_OUTPUT_DIR/results/sacrebleu.txt
 
     rm $GENERATION_OUTPUT_DIR/final/generated_unique.txt.*
     rm $GENERATION_OUTPUT_DIR/final/reference_unique.txt.*
 
-    python gpt2_finetune/scripts/evaluate_em_f1.py $GENERATION_OUTPUT_DIR/final/generated_unique.txt $GENERATION_OUTPUT_DIR/final/reference_unique.txt 2>&1 | tee $GENERATION_OUTPUT_DIR/results/f1_em.txt
+    python style_paraphrase/scripts/evaluate_em_f1.py $GENERATION_OUTPUT_DIR/final/generated_unique.txt $GENERATION_OUTPUT_DIR/final/reference_unique.txt 2>&1 | tee $GENERATION_OUTPUT_DIR/results/f1_em.txt
 
     python preprocess/data_filter_generated.py --data_dir $GENERATION_OUTPUT_DIR/final
     # Classify the generated text using a pretrained classifier and compare the labels to the expected labels
-    python gpt2_finetune/scripts/classify_generations.py --data_dir $GENERATION_OUTPUT_DIR/final --output_file $GENERATION_OUTPUT_DIR/results/classifier.txt --original_data_dir $DATA_DIR
+    python style_paraphrase/scripts/classify_generations.py --data_dir $GENERATION_OUTPUT_DIR/final --output_file $GENERATION_OUTPUT_DIR/results/classifier.txt --original_data_dir $DATA_DIR
 
     # Calculate paraphrase similarity
     python scripts/get_paraphrase_similarity.py --generated_path $GENERATION_OUTPUT_DIR/final/generated_unique.txt --reference_strs original,paraphrase --reference_paths $GENERATION_OUTPUT_DIR/final/reference_unique.txt,$GENERATION_OUTPUT_DIR/final/context_unique.txt
 
     # Measure the % of word copying from the roberta_sentence as well as the GPT2 context, also output ANSI colored sequences
-    python gpt2_finetune/scripts/evaluate_text_overlap.py $GENERATION_OUTPUT_DIR/final $GENERATION_OUTPUT_DIR/results/overlap | tee $GENERATION_OUTPUT_DIR/results/overlap_results.txt
+    python style_paraphrase/scripts/evaluate_text_overlap.py $GENERATION_OUTPUT_DIR/final $GENERATION_OUTPUT_DIR/results/overlap | tee $GENERATION_OUTPUT_DIR/results/overlap_results.txt
 
 done

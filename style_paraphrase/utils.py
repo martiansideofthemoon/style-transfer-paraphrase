@@ -12,8 +12,8 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 from functools import partial
 
-from gpt2_finetune.dataset_config import DATASET_CONFIG
-from gpt2_finetune.data_utils import update_config, Instance
+from style_paraphrase.dataset_config import DATASET_CONFIG
+from style_paraphrase.data_utils import update_config, Instance
 
 MODEL_CLASSES = {
     'gpt2': (GPT2LMHeadModel, GPT2Tokenizer)
