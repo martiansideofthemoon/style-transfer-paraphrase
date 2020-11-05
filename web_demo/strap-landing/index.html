@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-143894998-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-143894998-1');
+    </script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
+
+    <title>Generating Question-Answer Hierarchies</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css"
+          integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+    <style>
+        /* Show it is fixed to the top */
+
+        @font-face {
+          font-family: 'jdfont';
+          src: URL('j.d.ttf') format('truetype');
+        }
+
+        body {
+          padding-top: 4.5rem;
+          position: relative;
+        }
+
+        .anchor-target:target::before {
+          display: block;
+          content: " ";
+          margin-top: -60px;
+          padding-top: 60px;
+          visibility: hidden;
+          pointer-events: none;
+        }
+
+
+      /*https://stackoverflow.com/questions/35647044/boostrap-how-to-stick-a-button-over-an-image-when-re-sizing*/
+        .img-wrapper {
+          position: relative;
+         }
+
+        .img-overlay {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          text-align: left;
+        }
+
+        .img-overlay:before {
+          content: ' ';
+          display: block;
+          /* adjust 'height' to position overlay content vertically */
+          height: 40%;
+        }
+
+
+        .jumbotron {
+          margin-bottom: .5rem;
+          padding: 2rem 2rem;
+        }
+
+        .headshot {
+          width: 9rem;
+          margin: 0.4rem;
+        }
+        .card-body {
+          padding: 0.5rem;
+        }
+
+        .citation {
+          display: block;
+          padding: 9.5px;
+          margin: 0 0 10px;
+          font-size: 13px;
+          line-height: 1.42857143;
+          word-break: break-all;
+          word-wrap: break-word;
+          color: #333;
+          background-color: #f5f5f5;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+
+        .answerbutton {
+          white-space:normal !important;
+          word-wrap: break-word;
+          text-align: left;
+        }
+
+        /*.answergroup {*/
+          /*display: inline-grid;*/
+        /*}*/
+
+        .box-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05); }
+        .fig-shadow { box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .15); }
+
+        .clicked-correct:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        .clicked-correct {
+            color: #fff;
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .clicked-wrong:hover {
+          background-color: #c82333;
+          border-color: #bd2130;
+        }
+
+        .clicked-wrong {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .navbar-brand {
+          font-family: 'jdfont', cursive;
+          font-size:1.5rem;
+        }
+
+        .squashtitleemph {
+          font-family: 'jdfont', cursive;
+        }
+
+        .msg {
+          margin-bottom: 0;
+        }
+
+    </style>
+  </head>
+  <body data-spy="scroll" data-target="#navbarCollapse" data-offset="200">
+
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="#">SQUASH</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#demo">Demo</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#paper">Paper</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#authors">Authors</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+      <div class="jumbotron">
+        <h1><span class="squashtitleemph">SQUASH</span>: Generating Question-Answer Hierarchies<br>(ACL 2019)</h1>
+
+        <a class="btn btn-lg btn-info" href="https://arxiv.org/abs/1906.02622" role="button" title="Paper">Paper &raquo;</a>
+        <a class="btn btn-lg btn-success" href="http://squash.cs.umass.edu:3000" role="button" title="Demo">Demo &raquo;</a>
+        <a class="btn btn-lg btn-primary" href="https://drive.google.com/open?id=1FlVtPgyBiJIEOIecnNLH3cg0EbKkK0Z4" role="button" title="Dataset">Dataset &raquo;</a>
+        <a class="btn btn-lg btn-secondary" href="https://github.com/martiansideofthemoon/squash-generation" role="button" title="Code">Project Code &raquo;</a>
+        <a class="btn btn-lg btn-warning" href="https://github.com/martiansideofthemoon/squash-website" role="button" title="Demo Code">Demo Code &raquo;</a>
+      </div>
+
+      <div id="about" class="anchor-target" style="margin-top: 1rem;">
+        <h3><span class="squashtitleemph">SQUASH</span>, a new text generation task and an alternate way to read documents.</h3>
+      <p>Several years ago, the Greek philosopher Socrates encouraged his students to learn about the world by <a href="https://en.wikipedia.org/wiki/Socratic_questioning">questioning</a> <a href="https://www.roangelo.net/logwitt/logwit41.html">everything</a>. More recently, the process of knowledge acquisition has been viewed as a question-answer game between a student and a teacher in which the student typically starts by asking broad, open-ended questions before drilling down into specifics (<a href="https://link.springer.com/article/10.1023/A:1013076706416">Hakkarainen and Sintonen, 2002</a>).</p>
+
+      <p>In this project, we introduce a novel text generation task (Specificity-controlled Question-Answer Hierarchies, or <span class="squashtitleemph">SQUASH</span> for short) which aims to <b>convert a sequence of input paragraphs into a hierarchy of question-answer pairs about the paragraphs</b>. The hierarchy is determined by the specificity of the question. The higher level of the hierarchy has broader higher-level questions (for example, <i>Why did Frodo leave the Fellowship?</i>) whereas the lower level of the hierarchy has related but more specific questions (for example, <i>Who did Frodo leave with?</i>). In order to tackle this task, we classify questions in existing reading comprehension datasets (like SQuAD, CoQA and QuAC) according to their specificity using a question taxonomy loosely based on <a href="https://www.aclweb.org/anthology/J80-3006">Lehnert 1978</a>. These specificity-labelled datasets are used to train a specificity and context conditioned neural question generation model which forms a part of a larger pipeline to SQUASH paragraphs.</p>
+
+      <div id="demo" class="anchor-target">
+      <h3>Demo</h3>
+      <p>Along with the academic publication and codebase, we are releasing a <a href="http://squash.cs.umass.edu:3000">web demonstration</a> you can play with! The demonstration contains an improved version of the original model and has customizable generation and filtering hyperparameters. <a href="https://arxiv.org/pdf/1906.02622.pdf#page=15">Here</a> is a technical note on the modifications made. In a nutshell, we have leveraged language model pretraining in the question generation (via <a href="https://openai.com/blog/better-language-models/">GPT2 small</a>) and question answering modules (via <a href="https://arxiv.org/abs/1810.04805">BERT</a>). All our question generation now uses top-p random sampling (<a href="https://arxiv.org/pdf/1904.09751.pdf">Holtzman et al. 2019</a>). The dataset has been modified to resolve coreferences in the QuAC questions via <a href="https://github.com/huggingface/neuralcoref/">huggingface/neuralcoref</a>. Finally, the filtering process has been simplified.</p>
+
+      <div id="paper" class="anchor-target">
+      <h3>Paper</h3>
+        <div class="img-wrapper">
+          <a href="https://arxiv.org/abs/1906.02622"><img class="img-fluid" src="thumb.png">
+          <div class="img-overlay">
+            <button class="btn btn-info">Read the paper&raquo;</button>
+          </div>
+            </a>
+        </div>If you find this paper relevant, please cite us:
+    <pre class="citation">@inproceedings{squash2019,
+Author = {Kalpesh Krishna and Mohit Iyyer},
+Booktitle = {Association for Computational Linguistics,
+Year = "2019",
+Title = {Generating Question-Answer Hierarchies}
+}
+</pre></div>
+
+
+<div id="authors" class="anchor-target">
+  <h3>Contact</h3>
+      <div class="row" style="margin: 0 auto;">
+  <div class="card headshot box-shadow">
+    <img class="card-img-top" src="kalpesh.jpg" alt="kalpesh">
+  <div class="card-body">
+    <p class="card-text"><a href="http://martiansideofthemoon.github.io/">Kalpesh Krishna</a></p>
+    </div>
+  </div>
+  <div class="card headshot box-shadow">
+    <img class="card-img-top" src="mohit.jpg" alt="mohit">
+    <div class="card-body">
+      <p class="card-text"><a href="https://people.cs.umass.edu/~miyyer/">Mohit Iyyer</a></p>
+    </div>
+  </div>
+</div>
+</div>
+
+      <div id="contact" class="anchor-target">
+        <p><a href='mailto:kalpesh@cs.umass.edu'>kalpesh@cs.umass.edu</a>, <a href='mailto:miyyer@cs.umass.edu'>miyyer@cs.umass.edu</a></p>
+      </div>
+
+      <hr>
+      <div id="contact" class="anchor-target">
+        <p>website credits - <a href="https://rowanzellers.com">Rowan Zellers</a>' website on <a href="https://rowanzellers.com/hellaswag/">HellaSwag</a>.</p>
+      </div>
+  </div>
+
+</main>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js"
+        integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.9"></script>
+
+
+  </body>
+</html>
