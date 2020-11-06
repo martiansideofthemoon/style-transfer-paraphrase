@@ -41,7 +41,8 @@ def get_strap_doc():
         "queue_number": queue_number,
         "settings": metadata["settings"],
         "input_text": metadata["input_text"],
-        "status": status
+        "status": status,
+        "target_style": metadata["target_style"],
     })
 
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -64,6 +65,9 @@ def request_strap_doc():
 
     with open(OUTPUT_DIR + "/generated_outputs/inputs/%s/metadata.json" % keygen, "w") as f:
         f.write(json.dumps(form_data))
+
+    with open(OUTPUT_DIR + "/generated_outputs/inputs/%s/written.txt" % keygen, "w") as f:
+        f.write("True")
 
     response = flask.jsonify({
         "new_id": keygen

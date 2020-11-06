@@ -28,7 +28,7 @@ function QueueNumber(props) {
         return (
             <div>
                 <div>
-                    Your sentence is being processed. The status will auto-refresh every 5 seconds.
+                    Your sentence is being processed. The status will auto-refresh every two seconds.
                 </div>
             </div>
         )
@@ -48,18 +48,22 @@ class SquashDemo extends React.Component {
         super(props);
         const urlParams = new URLSearchParams(window.location.search);
         const squashId = urlParams.get('id');
+        const initRandom = urlParams.get('random') === 'true';
         this.state = {
             squashId: squashId,
             settings: {
                 'top_p_paraphrase': 0.0,
-                'top_p_style': 0.6,
+                'top_p_style': 0.7,
             },
             ans_mode: 'original',
-            forest: null,
+            output_data: null,
             queue_number: null,
             input_text: null,
             status: null,
-            dropdownOpen: false
+            dropdownOpen: false,
+            styleDropDownOpen: false,
+            targetStyle: null,
+            initRandom: initRandom
         };
     }
 
@@ -74,6 +78,7 @@ class SquashDemo extends React.Component {
                 this.setState({
                     output_data: result.output_data,
                     queue_number: result.queue_number,
+                    targetStyle: this.state.initRandom ? null : result.target_style,
                     settings: {
                         'top_p_paraphrase': result.settings.top_p_paraphrase,
                         'top_p_style': result.settings.top_p_style
@@ -90,7 +95,7 @@ class SquashDemo extends React.Component {
     componentDidMount() {
         this.getSquashedDocument.bind(this)();
         ReactGA.pageview(window.location.pathname + window.location.search);
-        this.interval = setInterval(this.getSquashedDocument.bind(this), 5000);
+        this.interval = setInterval(this.getSquashedDocument.bind(this), 2000);
     }
 
     componentWillUnmount() {
@@ -123,17 +128,31 @@ class SquashDemo extends React.Component {
         }));
       }
 
-    transferSentence() {
+      toggleStyleDropDown() {
+        this.setState(prevState => ({
+          styleDropDownOpen: !prevState.styleDropDownOpen
+        }));
+      }
+
+      toggleStyle(targetStyle) {
+        this.setState({
+            targetStyle: targetStyle
+        });
+      }
+
+    transferSentence(random_sentence = false) {
         var url = SERVER_URL + "/request_strap_doc";
         var flags = {
             method: 'POST',
             body: JSON.stringify({
                 settings: this.state.settings,
-                input_text: document.getElementById('strapInputText').value
+                input_text: document.getElementById('strapInputText').value,
+                random: random_sentence,
+                target_style: this.state.targetStyle
             })
         };
         fetch(url, flags).then(res => res.json()).then((result) => {
-            window.location.href = '/?id=' + result.new_id;
+            window.location.href = '/?id=' + result.new_id + '&random=' + random_sentence;
         }, (error) => {
             console.log(error);
         })
@@ -141,7 +160,7 @@ class SquashDemo extends React.Component {
 
     render() {
         var squash_loaded = false;
-        if (this.state.forest != null) {
+        if (this.state.output_data != null) {
             squash_loaded = true;
         }
         return (
@@ -153,11 +172,10 @@ class SquashDemo extends React.Component {
                 <Row>
                     <Col md={{order: 2, size: 5}} xs={{order: 1}}>
                         <h5>A demo for <a href="https://arxiv.org/abs/2010.05700">Reformulating Unsupervised Style Transfer as Paraphrase Generation</a></h5>
-                        <p>This system rewrites text using a specified target style while preserving semantic information. No parallel data was used to train this system.
-                         Check out our <a href="http://style.cs.umass.edu/">landing page</a> for more details.
+                        <p>This system rewrites text using a specified target style while preserving semantic information. <br/> <b>No parallel style transfer data was used to train this system</b>.
+                         Check out our <a href="http://style.cs.umass.edu/">landing page</a> for links to the code, paper and dataset.
                          Feel free to fork and use the <a href="https://github.com/martiansideofthemoon/style-transfer-paraphrase/tree/master/web-demo">source code</a> for this demo.</p>
                         <p>Contact <a href="mailto:kalpesh@cs.umass.edu">kalpesh@cs.umass.edu</a> if you run into any issues.</p>
-
                     </Col>
                     <Col md={{order: 2, size: 7}} xs={{order: 2}}>
                     </Col>
@@ -165,26 +183,19 @@ class SquashDemo extends React.Component {
                 <Row>
                     <Col md={{order: 2, size: 5}} xs={{order: 2}}>
                     <div>
-                    <div className="precomputed-div">
-                    Enter your text or&nbsp;&nbsp;
-                    <Dropdown isOpen={this.state.dropdownOpen} toggle={() => this.toggleDropDown()}>
-                        <DropdownToggle color="info" caret>
-                          choose an example
-                        </DropdownToggle>
-                        <DropdownMenu>
-                          <DropdownItem tag="a" href="/?id=04bf8a42f934944809e76ec1">Cricket</DropdownItem>
-                          <DropdownItem tag="a" href="/?id=bbd2ba3e440ff9abb52f211f">The Fellowship of the Ring</DropdownItem>
-                          <DropdownItem tag="a" href="/?id=e3aebbb37fa9d1c48638aa46">Neil Armstrong</DropdownItem>
-                        </DropdownMenu>
-                    </Dropdown>
-                    </div>
                     <hr />
-
                     <RequestForm
                         settings={this.state.settings}
                         changeSliderParaphrase={(e) => this.changeSlider(e, 'top_p_paraphrase')}
                         changeSliderStyle={(e) => this.changeSlider(e, 'top_p_style')}
                         transferSentence={() => this.transferSentence()}
+                        styleDropDownOpen={this.state.styleDropDownOpen}
+                        toggleStyleDropDown={() => this.toggleStyleDropDown()}
+                        targetStyle={this.state.targetStyle}
+                        toggleStyle={(e) => this.toggleStyle(e)}
+                        toggleExamplesDropDown={() => this.toggleDropDown()}
+                        transferSentenceRandom={() => this.transferSentence(true)}
+                        dropdownOpen={this.state.dropdownOpen}
                     />
                     </div>
                     </Col>
