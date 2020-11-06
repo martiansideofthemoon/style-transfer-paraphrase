@@ -12,7 +12,7 @@ import {
     FormText,
     Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
 } from 'reactstrap';
-import SquashForest from './forest.js';
+import StyleOutput from './output.js';
 import RequestForm from './request_form.js';
 import SERVER_URL from './url.js';
 import ReactGA from 'react-ga';
@@ -22,52 +22,13 @@ import Toggle from 'react-toggle'
 
 ReactGA.initialize('UA-144025713-1');
 
-function cellCompleted(status) {
-    if (status) {
-        return <td className="cell-completed">COMPLETED</td>
-    } else {
-        return <td className="cell-pending">PENDING</td>
-    }
-}
-
-function makeTable(status) {
-    return (
-        <Table className="status-table">
-            <thead>
-                <tr>
-                    <th>Step</th><th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Answer Extraction</td>{cellCompleted(status.answers_extracted)}
-                </tr>
-                <tr>
-                    <td>Question Generation</td>{cellCompleted(status.questions_generated)}
-                </tr>
-                <tr>
-                    <td>Answer Generation</td>{cellCompleted(status.answers_generated)}
-                </tr>
-                <tr>
-                    <td>Question Filtering</td>{cellCompleted(status.questions_filtered)}
-                </tr>
-            </tbody>
-        </Table>
-    )
-}
-
 
 function QueueNumber(props) {
-    var status_table = makeTable(props.status)
     if (props.queue_number === 1) {
         return (
             <div>
                 <div>
-                    Your document is being processed. The status will auto-refresh every 5 seconds, It typically takes about 3-6 seconds per paragraph.
-                </div>
-                <br />
-                <div>
-                    {status_table}
+                    Your sentence is being processed. The status will auto-refresh every 5 seconds.
                 </div>
             </div>
         )
@@ -75,11 +36,7 @@ function QueueNumber(props) {
         return (
             <div>
                 <div>
-                    Your document is in the queue, {props.queue_number - 1} document(s) before you. The status will auto-refresh every 5 seconds. It typically takes 10-15 seconds per document.
-                </div>
-                <br />
-                <div>
-                    {status_table}
+                    Your sentence is in the queue, {props.queue_number - 1} sentence(s) before you. The status will auto-refresh every 5 seconds.
                 </div>
             </div>
         )
@@ -94,42 +51,34 @@ class SquashDemo extends React.Component {
         this.state = {
             squashId: squashId,
             settings: {
-                'top_p': 0.9,
-                'gen_frac': 0.5,
-                'spec_frac': 0.5
+                'top_p_paraphrase': 0.0,
+                'top_p_style': 0.6,
             },
             ans_mode: 'original',
             forest: null,
             queue_number: null,
             input_text: null,
             status: null,
-            expanded: null,
             dropdownOpen: false
         };
     }
 
     getSquashedDocument() {
         if (this.state.squashId && this.state.queue_number !== 0) {
-            var url = SERVER_URL + "/get_squash_doc?id=" + this.state.squashId
+            var url = SERVER_URL + "/get_strap_doc?id=" + this.state.squashId
 
             fetch(url).then(res => res.json()).then((result) => {
                 if (result.input_text) {
-                    document.getElementById("squashInputText").value = result.input_text
-                }
-                var expanded = null;
-                if (result.squash_data != null) {
-                    expanded = result.squash_data.qa_tree.map((para, para_index) => para.binned_qas.map((qa_tree, qa_index) => false));
+                    document.getElementById("strapInputText").value = result.input_text
                 }
                 this.setState({
-                    forest: result.squash_data,
+                    output_data: result.output_data,
                     queue_number: result.queue_number,
                     settings: {
-                        'top_p': result.settings.top_p,
-                        'gen_frac': result.settings.gen_frac,
-                        'spec_frac': result.settings.spec_frac
+                        'top_p_paraphrase': result.settings.top_p_paraphrase,
+                        'top_p_style': result.settings.top_p_style
                     },
-                    status: result.status,
-                    expanded: expanded
+                    status: result.status
                 });
 
             }, (error) => {
@@ -174,13 +123,13 @@ class SquashDemo extends React.Component {
         }));
       }
 
-    squashDoc() {
-        var url = SERVER_URL + "/request_squash_doc";
+    transferSentence() {
+        var url = SERVER_URL + "/request_strap_doc";
         var flags = {
             method: 'POST',
             body: JSON.stringify({
                 settings: this.state.settings,
-                input_text: document.getElementById('squashInputText').value
+                input_text: document.getElementById('strapInputText').value
             })
         };
         fetch(url, flags).then(res => res.json()).then((result) => {
@@ -199,43 +148,18 @@ class SquashDemo extends React.Component {
             <div className="container-fluid">
                 <Helmet>
                     <meta charSet="utf-8" />
-                    <title>SQUASH!</title>
+                    <title>Reformulating Unsupervised Style Transfer as Paraphrase Generation</title>
                 </Helmet>
                 <Row>
                     <Col md={{order: 2, size: 5}} xs={{order: 1}}>
-                        <h5>A demo for <a href="https://arxiv.org/abs/1906.02622">Generating Question-Answer Hierarchies</a></h5>
-                        <p>This system converts a sequence of paragraphs into a hierarchy of question-answer pairs, with general questions at the top level and specific questions underneath.
-                         Check out our <a href="http://squash.cs.umass.edu/">landing page</a> for more details.
-                         Feel free to fork and use the <a href="https://github.com/martiansideofthemoon/squash-website">source code</a> for this demo.</p>
+                        <h5>A demo for <a href="https://arxiv.org/abs/2010.05700">Reformulating Unsupervised Style Transfer as Paraphrase Generation</a></h5>
+                        <p>This system rewrites text using a specified target style while preserving semantic information. No parallel data was used to train this system.
+                         Check out our <a href="http://style.cs.umass.edu/">landing page</a> for more details.
+                         Feel free to fork and use the <a href="https://github.com/martiansideofthemoon/style-transfer-paraphrase/tree/master/web-demo">source code</a> for this demo.</p>
                         <p>Contact <a href="mailto:kalpesh@cs.umass.edu">kalpesh@cs.umass.edu</a> if you run into any issues.</p>
 
                     </Col>
                     <Col md={{order: 2, size: 7}} xs={{order: 2}}>
-                        {
-                        squash_loaded &&
-                        <div className="switch-answer-div">
-                            <hr />
-                            <div className="toggle-div">
-                                <div className="toggle-sub-div">
-                                    <span>Original Answers</span>
-                                </div>
-                                <div className="toggle-sub-div">
-                                    <Toggle defaultChecked={this.state.ans_mode === 'predicted'} icons={false} onChange={() => this.toggleAnswerMode()} />
-                                </div>
-                                <div className="toggle-sub-div">
-                                    <span>Predicted Answers</span>
-                                </div>
-                                <br />
-                            </div>
-                            <div>
-                            <FormText>When set to "Original answers", the displayed answers will be the same as the text spans provided to the question generation
-                            system as input (see section 3.1 of the <a href="https://arxiv.org/pdf/1906.02622.pdf#page=3">paper</a>). When set to "Predicted answers", the displayed answers are the output of a BERT-based QA
-                            model when fed the generated questions. Predicted answers are generally shorter and more accurate, while original answers offer more insight into
-                            the context that produced the question. </FormText>
-                            </div>
-                            <hr />
-                        </div>
-                        }
                     </Col>
                 </Row>
                 <Row>
@@ -257,21 +181,15 @@ class SquashDemo extends React.Component {
                     <hr />
 
                     <RequestForm
-                        forest={this.state.forest}
                         settings={this.state.settings}
-                        changeSliderTopP={(e) => this.changeSlider(e, 'top_p')}
-                        changeSliderGenFrac={(e) => this.changeSlider(e, 'gen_frac')}
-                        changeSliderSpecFrac={(e) => this.changeSlider(e, 'spec_frac')}
-                        squashDoc={() => this.squashDoc()}
+                        changeSliderParaphrase={(e) => this.changeSlider(e, 'top_p_paraphrase')}
+                        changeSliderStyle={(e) => this.changeSlider(e, 'top_p_style')}
+                        transferSentence={() => this.transferSentence()}
                     />
                     </div>
                     </Col>
                     <Col md={{order: 2, size: 7}} xs={{order: 1}}>
-                        {squash_loaded && <SquashForest forest={this.state.forest}
-                                                        ans_mode={this.state.ans_mode}
-                                                        toggleAnswerMode={() => this.toggleAnswerMode()}
-                                                        toggleSpecific={(para_index, qa_index) => this.toggleSpecific(para_index, qa_index)}
-                                                        expanded={this.state.expanded}/>}
+                        {squash_loaded && <StyleOutput output_data={this.state.output_data}/>}
                         {this.state.queue_number !== null && this.state.queue_number !== 0 && <QueueNumber queue_number={this.state.queue_number} status={this.state.status}/>}
                     </Col>
                 </Row>

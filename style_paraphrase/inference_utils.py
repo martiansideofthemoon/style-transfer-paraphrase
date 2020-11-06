@@ -123,7 +123,7 @@ class GPT2Generator(object):
     def generate(self, context, global_dense_features=None, get_scores=False,
                  interpolation=None, top_p=None):
         return self.generate_batch([context],
-                                   [global_dense_features],
+                                   [global_dense_features] if global_dense_features is not None else None,
                                    get_scores=get_scores,
                                    interpolation=interpolation,
                                    top_p=top_p)[0][0]

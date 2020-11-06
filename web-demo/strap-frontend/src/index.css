@@ -57,11 +57,11 @@ code {
   	font-family: 'jdfont', cursive;
 }
 
-#top-p-slider .slider-selection {
+#top-p-slider-paraphrase .slider-selection {
 	background: #82B366;
 }
 
-#general-slider .slider-selection {
+#top-p-slider-style .slider-selection {
 	background: #6C8EBF;
 }
 

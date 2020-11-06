@@ -1,3 +1,4 @@
+#!/bin/bash
 # export CUDA_VISIBLE_DEVICES=0
 
 declare -a arr=(0.0 0.6 0.9)
