@@ -31,7 +31,7 @@ To train the paraphrase model, run [`style_paraphrase/examples/run_finetune_para
 
 ## Evaluation
 
-Please check [`evaluation/README.md`](style_paraphrase/evaluation/README.md) for more details.
+Please check [`style_paraphrase/evaluation/README.md`](style_paraphrase/evaluation/README.md) for more details.
 
 ## Outputs from STRAP
 

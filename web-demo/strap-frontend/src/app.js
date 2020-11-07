@@ -173,9 +173,11 @@ class SquashDemo extends React.Component {
                     <Col md={{order: 2, size: 5}} xs={{order: 1}}>
                         <h5>A demo for <a href="https://arxiv.org/abs/2010.05700">Reformulating Unsupervised Style Transfer as Paraphrase Generation</a></h5>
                         <p>This system rewrites text using a specified target style while preserving semantic information. <br/> <b>No parallel style transfer data was used to train this system</b>.
-                         Check out our <a href="http://style.cs.umass.edu/">landing page</a> for links to the code, paper and dataset.
-                         Feel free to fork and use the <a href="https://github.com/martiansideofthemoon/style-transfer-paraphrase/tree/master/web-demo">source code</a> for this demo.</p>
-                        <p>Contact <a href="mailto:kalpesh@cs.umass.edu">kalpesh@cs.umass.edu</a> if you run into any issues.</p>
+                         Check out our <a href="http://style.cs.umass.edu/">landing page</a> for links to the code, paper and dataset. Note that we are not performing any filtering on our model outputs
+                         and they might occasionally be biased like many <a href="https://arxiv.org/pdf/2005.14165.pdf#page=36">modern text generation systems</a>. <br />
+
+                         The source code for the demo can be found <a href="https://github.com/martiansideofthemoon/style-transfer-paraphrase/tree/master/web-demo">here</a>.
+                         Contact <a href="mailto:kalpesh@cs.umass.edu">kalpesh@cs.umass.edu</a> if you run into any issues.</p>
                     </Col>
                     <Col md={{order: 2, size: 7}} xs={{order: 2}}>
                     </Col>
