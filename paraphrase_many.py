@@ -28,7 +28,7 @@ with open(args.input, "r") as f:
 
 print("Loading paraphraser...")
 paraphraser = GPT2Generator(args.model_dir)
-paraphraser.modify_p(top_p=args.top_p)
+paraphraser.modify_p(top_p=args.top_p_value)
 
 outputs = []
 for i in tqdm.tqdm(range(0, len(data), args.batch_size), desc="minibatches done..."):

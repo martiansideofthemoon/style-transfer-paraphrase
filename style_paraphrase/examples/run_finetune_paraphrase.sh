@@ -13,6 +13,8 @@
 
 export DATA_DIR=datasets/paranmt_filtered
 
+source style-venv/bin/activate
+
 BASE_DIR=style_paraphrase
 
 python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/run_lm_finetuning.py \
@@ -20,7 +22,7 @@ python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/run_lm_finetunin
     --model_type=gpt2 \
     --model_name_or_path=gpt2-large \
     --data_dir=$DATA_DIR \
-    --do_eval \
+    --do_train \
     --save_steps 500 \
     --logging_steps 20 \
     --save_total_limit -1 \
@@ -28,7 +30,7 @@ python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/run_lm_finetunin
     --num_train_epochs 3 \
     --gradient_accumulation_steps 2 \
     --per_gpu_train_batch_size 5 \
-    --job_id 0 \
+    --job_id paraphraser_test \
     --learning_rate 5e-5 \
     --prefix_input_type original \
     --global_dense_feature_list none \

@@ -73,13 +73,13 @@ class Instance(object):
         dense_length = self.config["global_dense_length"]
         self.label_suffix = right_padding(
             np.append(self.sent2_tokens, tokenizer.eos_token_id),
-            -1,
+            -100,
             self.config["max_suffix_length"] + 1
         )
         self.label = np.concatenate([
-            [-1 for _ in range(dense_length)],
-            [-1 for _ in self.sent_prefix],
-            [-1],
+            [-100 for _ in range(dense_length)],
+            [-100 for _ in self.sent_prefix],
+            [-100],
             self.label_suffix
         ]).astype(np.int64)
 
