@@ -10,12 +10,16 @@ The web demo for the system can be found [here](http://arkham.cs.umass.edu:8553)
 
 ## Setup
 
-The code uses PyTorch 1.4+, HuggingFace's [`transformers`](https://github.com/huggingface/transformers) library for training GPT2 models, and Facebook AI Research's [`fairseq`](https://github.com/facebookresearch/fairseq) for evaluation using RoBERTa classifiers.
+The code uses PyTorch 1.4+, HuggingFace's [`transformers`](https://github.com/huggingface/transformers) library for training GPT2 models, and Facebook AI Research's [`fairseq`](https://github.com/facebookresearch/fairseq) for evaluation using RoBERTa classifiers. To install PyTorch, look for the Python package compatible with your local CUDA setup [here](https://pytorch.org).
 
 ```
 virtualenv style-venv
 source style-venv/bin/activate
+pip install torch torchvision
 pip install -r requirements.txt
+pip install --editable .
+
+cd fairseq
 pip install --editable .
 ```
 
