@@ -24,43 +24,38 @@ with open("config.json", "r") as f:
     configuration = json.loads(f.read())
     OUTPUT_DIR = configuration["output_dir"]
 
+
 with torch.cuda.device(0):
     print("Loading paraphraser....")
     paraphraser = GPT2Generator(OUTPUT_DIR + "/models/paraphraser_gpt2_large")
-
-with torch.cuda.device(1):
     print("Loading Bible model...")
     bible = GPT2Generator(OUTPUT_DIR + "/models/bible")
-    print("Loading Lyrics model...")
-    lyrics = GPT2Generator(OUTPUT_DIR + "/models/lyrics")
 
-with torch.cuda.device(2):
+with torch.cuda.device(1):
     print("Loading Tweets model...")
     tweets = GPT2Generator(OUTPUT_DIR + "/models/tweets")
     print("Loading Romantic Poetry model...")
     poetry = GPT2Generator(OUTPUT_DIR + "/models/poetry")
 
-with torch.cuda.device(3):
+with torch.cuda.device(2):
     print("Loading Shakespeare model...")
     shakespeare = GPT2Generator(OUTPUT_DIR + "/models/shakespeare")
     print("Loading Switchboard model...")
     switchboard = GPT2Generator(OUTPUT_DIR + "/models/switchboard")
 
 style_mapping = {
-    "Bible": {"model": bible, "device": 1, "data_file": "bible"},
-    "Lyrics": {"model": lyrics, "device": 1, "data_file": "lyrics"},
-    "Tweets": {"model": tweets, "device": 2, "data_file": "english_tweets"},
-    "Romantic Poetry": {"model": poetry, "device": 2, "data_file": "romantic_poetry"},
-    "Shakespeare": {"model": shakespeare, "device": 3, "data_file": "shakespeare"},
-    "Speech Transcripts": {"model": switchboard, "device": 3, "data_file": "switchboard"},
+    "Bible": {"model": bible, "device": 0, "data_file": "bible"},
+    "Tweets": {"model": tweets, "device": 1, "data_file": "english_tweets"},
+    "Romantic Poetry": {"model": poetry, "device": 1, "data_file": "romantic_poetry"},
+    "Shakespeare": {"model": shakespeare, "device": 2, "data_file": "shakespeare"},
+    "Conversational Speech": {"model": switchboard, "device": 2, "data_file": "switchboard"},
 }
 
 data_style_mapping = {
     "coha_1890": {"data_file": "coha_1890-1910"},
     "coha_1990": {"data_file": "coha_1990-2000"},
     "Shakespeare": {"data_file": "shakespeare"},
-    "Bible": {"data_file": "bible"},
-    "Speech Transcripts": {"data_file": "switchboard"},
+    "Conversational Speech": {"data_file": "switchboard"},
 }
 
 data_style_list = list(data_style_mapping.keys())
@@ -78,7 +73,7 @@ else:
 
     all_sents_clean = {}
     for style, sents in all_sents.items():
-        all_sents_clean[style] = [x for x in tqdm.tqdm(sents) if pf.is_clean(x) and len(x.split()) < 25]
+        all_sents_clean[style] = [x.strip().strip("\"").strip("\'").strip() for x in tqdm.tqdm(sents) if pf.is_clean(x) and len(x.split()) < 25]
 
     with open(OUTPUT_DIR + "/all_styles_clean.pkl", "wb") as f:
         pickle.dump(all_sents_clean, f)
