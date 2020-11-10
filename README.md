@@ -27,10 +27,12 @@ pip install --editable .
 
 All datasets will be added to this [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing). Download the datasets and place them under `datasets`. The datasets currently available are (with their folder names),
 
-1. ParaNMT-50M filtered down to 75k pairs - `paranmt_filtered`
-2. Shakespeare style transfer - `shakespeare`
+1. ParaNMT-50M filtered down to 75k pairs - `datasets/paranmt_filtered`
+2. Shakespeare style transfer - `datasets/shakespeare`
 3. Formality transfer - Please follow the instructions [here](https://github.com/raosudha89/GYAFC-corpus). Once you have access to the corpus, you could email me ([kalpesh@cs.umass.edu](mailto:kalpesh@cs.umass.edu)) to get access to the preprocessed version. We will also add scripts to preprocess the raw data.
-4. Corpus of Diverse Styles - samples can be found in [`samples/data_samples`](samples/data_samples). The full dataset is coming soon!
+4. Corpus of Diverse Styles - `datasets/cds`. Samples can be found in [`samples/data_samples`](samples/data_samples). Please cite the [original sources](https://arxiv.org/pdf/2010.05700.pdf#page=24) as well if you plan to use this dataset.
+
+**Instructions for training the model on custom data coming soon!**
 
 ## Training
 
