@@ -31,7 +31,7 @@ other_dependencies = {
 }
 
 
-top_details = "GPT2-large model for shakespeare."
+top_details = "GPT2 model for formality."
 hyperparameters = inverse_paraphrase
 
 run_id = int(get_run_id())

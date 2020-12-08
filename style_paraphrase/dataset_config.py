@@ -24,23 +24,20 @@ BASE_CONFIG = {
 DATASET_CONFIG = {
     "datasets/paranmt_filtered": BASE_CONFIG,
     "datasets/shakespeare": BASE_CONFIG,
-    "formality/formality": BASE_CONFIG,
-    "formality/formality_prior": BASE_CONFIG,
-    "formality/formality_prior2_lowercase": BASE_CONFIG,
-    "formality/formality_prior_detokenize": BASE_CONFIG,
-    "dataset_pools/shakespeare_aae_tweets_bible_romantic-poetry_switchboard_coha_3_bins_lyrics_full": BASE_CONFIG,
-    "dataset_pools/aae": BASE_CONFIG,
-    "dataset_pools/bible": BASE_CONFIG,
-    "dataset_pools/romantic-poetry": BASE_CONFIG,
-    "dataset_pools/switchboard": BASE_CONFIG,
-    "dataset_pools/english_tweets": BASE_CONFIG,
-    "dataset_pools/lyrics_full": BASE_CONFIG,
-    "dataset_pools/joyce": BASE_CONFIG,
-    "dataset_pools/congress-bills": BASE_CONFIG,
-    "dataset_pools/shakespeare": BASE_CONFIG,
-    "dataset_pools/coha_3_bins_1810s-1820s": BASE_CONFIG,
-    "dataset_pools/coha_3_bins_1890s-1900s": BASE_CONFIG,
-    "dataset_pools/coha_3_bins_1990s-2000s": BASE_CONFIG
+    "datasets/formality": BASE_CONFIG,
+    "datasets/shakespeare_aae_tweets_bible_romantic-poetry_switchboard_coha_3_bins_lyrics_full": BASE_CONFIG,
+    "datasets/aae": BASE_CONFIG,
+    "datasets/bible": BASE_CONFIG,
+    "datasets/romantic-poetry": BASE_CONFIG,
+    "datasets/switchboard": BASE_CONFIG,
+    "datasets/english_tweets": BASE_CONFIG,
+    "datasets/lyrics_full": BASE_CONFIG,
+    "datasets/joyce": BASE_CONFIG,
+    "datasets/congress-bills": BASE_CONFIG,
+    "datasets/shakespeare": BASE_CONFIG,
+    "datasets/coha_3_bins_1810s-1820s": BASE_CONFIG,
+    "datasets/coha_3_bins_1890s-1900s": BASE_CONFIG,
+    "datasets/coha_3_bins_1990s-2000s": BASE_CONFIG
 }
 
 # Fill in DATASET_CONFIG with keys it was missing previously

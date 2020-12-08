@@ -19,8 +19,8 @@ paraphrase = [
 ]
 
 inverse_paraphrase = [
-    [('model_name',), ['gpt2-large']],
-    [('dataset',), ["datasets/shakespeare"]],
+    [('model_name',), ['gpt2']],
+    [('dataset',), ["datasets/formality"]],
     [('batch_size',), [5]],
     [('accumulation',), [2]],
     [('num_epochs',), [3]],

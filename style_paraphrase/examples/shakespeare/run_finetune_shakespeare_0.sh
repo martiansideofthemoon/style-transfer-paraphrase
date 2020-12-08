@@ -16,7 +16,7 @@ export DATA_DIR=datasets/shakespeare
 BASE_DIR=style_paraphrase
 
 python -m torch.distributed.launch --nproc_per_node=1 $BASE_DIR/run_lm_finetuning.py \
-    --output_dir=$BASE_DIR/saved_models/model_7 \
+    --output_dir=$BASE_DIR/saved_models/model_shakespeare_0 \
     --model_type=gpt2 \
     --model_name_or_path=gpt2-large \
     --do_train \
