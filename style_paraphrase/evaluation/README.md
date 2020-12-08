@@ -18,10 +18,16 @@ We use a RoBERTa-large classifier trained on the [CoLA corpus](https://nyu-mll.g
 
 ### Running Evaluation
 
-From the root folder, run,
+For Shakespeare evaluation from the root folder `style-transfer-paraphrase` run,
 
 ```
 style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh shakespeare_models/model_300 shakespeare_models/model_299 paraphrase_gpt2_large
+```
+
+For Formality evaluation from the root folder `style-transfer-paraphrase` run,
+
+```
+style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh formality_models/model_314 formality_models/model_313 paraphrase_gpt2_large
 ```
 
 ### Human Evaluation
