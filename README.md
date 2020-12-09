@@ -44,6 +44,26 @@ All the main pretrained models have been added to the [Google Drive link](https:
 
 **Instructions on hyperparameter grid search & automation coming soon!** In the meantime you can find the code in `style_paraphrase/schedule.py`.
 
+## Classifier Training
+
+Classifiers are needed to evaluate style transfer performance. To train the classifiers follow the steps:
+
+1. Install the local fork of `fairseq`, as discussed above in "Setup".
+2. Download the RoBERTa checkpoints from [here](https://github.com/pytorch/fairseq/tree/master/examples/roberta#pre-trained-models). Alternatively, you could follow the commands below. If you want a smaller model, you can also setup a ROBERTA_BASE variable using a similar process.
+
+```
+wget https://dl.fbaipublicfiles.com/fairseq/models/roberta.large.tar.gz
+tar -xzvf roberta.large.tar.gz
+
+# Add the following to your .bashrc file, feel free to store the model elsewhere on the hard disk
+export ROBERTA_LARGE=$PWD/roberta.large
+```
+
+3. For training classifiers on Shakespeare, CoLA or CDS datasets, download the `shakespeare-bin`, `cola-bin` or `cds-bin` folders from the Drive link [here](https://drive.google.com/drive/folders/1Y54r47VSXP0Bo1h2cHhTMOLCH-YsP112?usp=sharing) and place them under `datasets`. I can provide similar files for the Formality dataset once you have access to the original corpus.
+
+4. To train the classifiers, see the examples in [`style_paraphrase/style_classify/examples`](style_paraphrase/style_classify/examples). You can also use a grid search (with a Slurm scheduler) by using the code in [`style_paraphrase/style_classify/schedule.py`](style_paraphrase/style_classify/schedule.py). We also have a light-weight Flask interface to plot performance with epochs which works well with the Slurm grid search automation, check [`style_paraphrase/style_classify/webapp/run.sh`](style_paraphrase/style_classify/webapp/run.sh).
+
+
 ## Evaluation
 
 Please check [`style_paraphrase/evaluation/README.md`](style_paraphrase/evaluation/README.md) for more details.

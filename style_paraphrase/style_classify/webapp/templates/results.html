@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <script type="text/javascript">
+  function draw_chart(name, title, data) {
+    var chart = new CanvasJS.Chart(name,
+    {
+      theme:"theme2",
+      title:{
+        text: title
+      },
+      animationEnabled: true,
+      axisY :{
+        includeZero: false,
+      },
+      toolTip: {
+        shared: "true"
+      },
+      data: data,
+      legend:{
+        cursor:"pointer",
+        itemclick : function(e) {
+          if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible ){
+            e.dataSeries.visible = false;
+          }
+          else {
+            e.dataSeries.visible = true;
+          }
+          chart.render();
+        }
+      },
+    });
+    chart.render();
+  }
+  window.onload = function () {
+    draw_chart("chartContainer", "Train Accuracy vs Epoch", {{ top_left|safe }})
+    draw_chart("chartContainer2", "Train Loss vs Epoch", {{ bottom_left|safe }})
+    draw_chart("chartContainer3", "Dev Accuracy vs Epoch", {{ top_right|safe }})
+  }
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/canvasjs/1.7.0/canvasjs.min.js"></script>
+</head>
+<body>
+  <div style="width: 100%">
+    <div style="width: 49%; float: left">
+      <div id="chartContainer" style="height: 600px;">
+      </div>
+      <br><br>
+      <div id="chartContainer2" style="height: 600px;">
+      </div>
+      <br><br>
+    </div>
+    <div style="width: 2%; float: left">&nbsp;</div>
+    <div style="width: 49%; float: left">
+      <div id="chartContainer3" style="height: 600px;">
+      </div>
+      <br><br>
+      <div>
+      {{ bottom_right|safe }}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
