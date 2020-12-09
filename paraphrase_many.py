@@ -27,7 +27,7 @@ with open(args.input, "r") as f:
     data = f.read().strip().split("\n")
 
 print("Loading paraphraser...")
-paraphraser = GPT2Generator(args.model_dir)
+paraphraser = GPT2Generator(args.model_dir, upper_length="same_5")
 paraphraser.modify_p(top_p=args.top_p_value)
 
 outputs = []

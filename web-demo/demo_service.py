@@ -27,7 +27,7 @@ with open("config.json", "r") as f:
 
 with torch.cuda.device(0):
     print("Loading paraphraser....")
-    paraphraser = GPT2Generator(OUTPUT_DIR + "/models/paraphraser_gpt2_large")
+    paraphraser = GPT2Generator(OUTPUT_DIR + "/models/paraphraser_gpt2_large", upper_length="same_5")
     print("Loading Bible model...")
     bible = GPT2Generator(OUTPUT_DIR + "/models/bible")
 
