@@ -8,7 +8,7 @@ from style_paraphrase.inference_utils import GPT2Generator
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--batch_size", default=16, type=int,
+parser.add_argument("--batch_size", default=8, type=int,
                     help="Batch size for inference.")
 parser.add_argument('--dataset', type=str, default=None)
 parser.add_argument('--model_dir', default="paraphraser_gpt2_large", type=str)
