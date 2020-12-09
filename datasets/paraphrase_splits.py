@@ -8,7 +8,7 @@ from style_paraphrase.inference_utils import GPT2Generator
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--batch_size", default=8, type=int,
+parser.add_argument("--batch_size", default=64, type=int,
                     help="Batch size for inference.")
 parser.add_argument('--dataset', type=str, default=None)
 parser.add_argument('--model_dir', default="paraphraser_gpt2_large", type=str)
@@ -23,7 +23,7 @@ if not torch.cuda.is_available():
     sys.exit()
 
 print("Loading paraphraser...")
-paraphraser = GPT2Generator(args.model_dir)
+paraphraser = GPT2Generator(args.model_dir, upper_length="same_5")
 paraphraser.modify_p(top_p=args.top_p_value)
 
 
