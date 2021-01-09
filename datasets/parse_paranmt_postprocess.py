@@ -1,3 +1,7 @@
+"""
+python preprocess/parse_paranmt_postprocess.py --filtering_method and_kt_less_precision_less_lendiff_less_0.0_0.5_5 --english_only
+"""
+
 import argparse
 import os
 import pickle
