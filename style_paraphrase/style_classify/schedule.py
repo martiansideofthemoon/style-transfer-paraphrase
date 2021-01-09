@@ -55,7 +55,7 @@ other_dependencies = {
 
 hyperparameters = [
     [('base_dataset',), ["datasets"]],
-    [('dataset',), ["shakespeare"]],
+    [('dataset',), ["cds"]],
     [('roberta_model',), ['LARGE']],
     [('learning_rate',), ['1e-5']],
     [('num_epochs',), [10]],
