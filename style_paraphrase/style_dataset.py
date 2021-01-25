@@ -25,8 +25,6 @@ from dataset_config import (
     DATASET_CONFIG,
     MAX_PARAPHRASE_LENGTH,
 )
-from fairseq.data.data_utils import collate_tokens
-from fairseq.models.roberta import RobertaModel
 
 logger = logging.getLogger(__name__)
 

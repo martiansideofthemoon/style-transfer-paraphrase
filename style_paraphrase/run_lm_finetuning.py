@@ -36,8 +36,6 @@ from collections import defaultdict
 
 from args import get_parser
 from data_utils import MAX_ROBERTA_LENGTH
-from fairseq.models.roberta import RobertaModel
-from fairseq.optim.adafactor import Adafactor
 from style_dataset import (InverseParaphraseDatasetText,
                            ParaphraseDatasetText)
 from transformers import (WEIGHTS_NAME, AdamW, GPT2Config, GPT2LMHeadModel,
