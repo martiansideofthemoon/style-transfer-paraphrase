@@ -209,23 +209,28 @@ def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')
 def get_logits(model, iteration, generated, segments, style_content_vectors, past):
     if iteration == 0:
         if style_content_vectors is None:
-            logits, past = model(
-                input_ids=generated,
-                token_type_ids=segments
-            )
-        else:
-            logits, past = model(
+            pred = model(
                 input_ids=generated,
                 token_type_ids=segments,
-                prefix_input_vectors=style_content_vectors
+                return_dict=True
+            )
+        else:
+            pred = model(
+                input_ids=generated,
+                token_type_ids=segments,
+                prefix_input_vectors=style_content_vectors,
+                return_dict=True
             )
     else:
         # used the cached representations to speed up decoding
-        logits, past = model(
+        pred = model(
             input_ids=generated[:, -1:],
             token_type_ids=segments[:, -1:],
-            past=past
+            past_key_values=past,
+            return_dict=True
         )
+    logits = pred['logits']
+    past = pred['past_key_values']
     return logits, past
 
 
