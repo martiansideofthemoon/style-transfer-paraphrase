@@ -18,3 +18,4 @@ fairseq-preprocess \
     --srcdict $ROBERTA_LARGE/dict.txt
 
 cp ${FOLDERNAME}-bin/label/dict.txt ${FOLDERNAME}-bin/dict.txt
+cp ${FOLDERNAME}-bin/label/dict.txt ${FOLDERNAME}/dict.txt
