@@ -100,6 +100,12 @@ datasets/bpe2binary.sh datasets/new_dataset
 python datasets/paraphrase_splits.py --dataset datasets/new_dataset
 ```
 
+4. Add an entry to the dictionary in [`style_paraphrase/dataset_config.py`](`style_paraphrase/dataset_config.py`), customizing configuration if needed.
+
+```
+"datasets/new_dataset": BASE_CONFIG
+```
+
 ## Citation
 
 If you find this repository useful, please cite us:
