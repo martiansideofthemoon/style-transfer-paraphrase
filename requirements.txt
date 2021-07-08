@@ -62,7 +62,7 @@ tokenizers==0.9.2
 tomlkit==0.5.11
 tqdm==4.50.2
 transformers==3.4.0
-urllib3==1.25.11
+urllib3==1.26.5
 waitress==1.4.4
 wasabi==0.8.0
 watchdog==0.10.3
