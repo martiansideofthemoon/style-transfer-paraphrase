@@ -22,7 +22,8 @@ BASE_CONFIG = {
 }
 
 DATASET_CONFIG = {
-    "datasets/paranmt_filtered": BASE_CONFIG,
+"datasets/test_custom": BASE_CONFIG,
+"datasets/paranmt_filtered": BASE_CONFIG,
     "datasets/shakespeare": BASE_CONFIG,
     "datasets/formality": BASE_CONFIG,
     "datasets/shakespeare_aae_tweets_bible_romantic-poetry_switchboard_coha_3_bins_lyrics_full": BASE_CONFIG,
