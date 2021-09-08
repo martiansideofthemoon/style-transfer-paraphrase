@@ -4,7 +4,7 @@ This is the official repository accompanying the EMNLP 2020 long paper [Reformul
 
 ## Updates (Summer 2021)
 
-* We have open-sourced multilingual classifiers for formality evaluation. Please see [`README_multilingual.md`](README_multilingual.md) for more details.
+* We have open-sourced multilingual classifiers for formality evaluation. Please see [`README-multilingual.md`](README_multilingual.md) for more details.
 
 * Thanks to [Filip Cornell](https://github.com/Filco306), STRAP paraphrasers are now available on [HuggingFace](https://huggingface.co/filco306) and [NL-Augmenter](https://github.com/GEM-benchmark/NL-Augmenter/pull/227)!
 
