@@ -2,6 +2,11 @@
 
 This is the official repository accompanying the EMNLP 2020 long paper [Reformulating Unsupervised Style Transfer as Paraphrase Generation](https://arxiv.org/abs/2010.05700). This repository contains the accompanying dataset and codebase.
 
+## Updates (Summer 2021)
+
+* We have open-sourced multilingual classifiers for formality evaluation. Please see [`README_multilingual.md`](README_multilingual.md) for more details.
+
+* Thanks to [Filip Cornell](https://github.com/Filco306), STRAP paraphrasers are now available on [HuggingFace](https://huggingface.co/filco306) and [NL-Augmenter](https://github.com/GEM-benchmark/NL-Augmenter/pull/227)!
 
 ## Demos
 
