@@ -1,6 +1,12 @@
-We are releasing multilingual formality classifiers by fine-tuning large multilingual language models on English GYAFC, to facilitate zero-shot cross-lingual transfer. We evaluated these classifiers on [XFORMAL](https://arxiv.org/abs/2104.04108). For each language, we lower-case sentences and remove trailing punctuation to stop the model from latching onto easy indicators of formality.
+We are releasing multilingual formality classifiers by fine-tuning large multilingual language models on English GYAFC, to facilitate zero-shot cross-lingual transfer. We evaluated these classifiers on [XFORMAL](https://arxiv.org/abs/2104.04108).
+
+For each language, we **lower-case sentences and remove trailing punctuation** to stop the model from latching onto easy indicators of formality.
 
 Our results seem to indicate that XLM MADX is the best model, followed by XLM.
+
+MAD-X and XLM-R base classifier checkpoints --- [link](https://drive.google.com/drive/folders/1EUYKeFslhSb_po6jwb7Pqkny5_zNsct6?usp=sharing)
+
+The MAD-X adapter is also available on AdapterHub [here](https://adapterhub.ml/adapters/martiansideofthemoon/xlm-roberta-base_formality_classify_gyafc_pfeiffer/).
 
 **Italian**
 
