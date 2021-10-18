@@ -68,13 +68,17 @@ if "paraphrase" in args.generation_mode:
 else:
     st_input_data = input_data
 
+if args.output_class is not None:
+    vec_data_dir = os.path.dirname(os.path.dirname(args.input_file))
+else:
+    vec_data_dir = os.path.dirname(os.path.dirname(args.input_file))
 if "nucleus" in args.generation_mode:
     style_transfer_model = GPT2Generator(
-        args.style_transfer_model, upper_length="same_10", top_p=args.top_p
+        args.style_transfer_model, upper_length="same_10", top_p=args.top_p, data_dir=vec_data_dir
     )
 else:
     style_transfer_model = GPT2Generator(
-        args.style_transfer_model, upper_length="same_10"
+        args.style_transfer_model, upper_length="same_10", data_dir=vec_data_dir
     )
 
 transferred_data = []

@@ -1,6 +1,6 @@
 import torch
-from test_sim.sim_models import WordAveraging
-from test_sim.sim_utils import Example
+from style_paraphrase.evaluation.similarity.sim_models import WordAveraging
+from style_paraphrase.evaluation.similarity.sim_utils import Example
 from nltk.tokenize import TreebankWordTokenizer
 import sentencepiece as spm
 

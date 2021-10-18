@@ -12,7 +12,7 @@ from style_paraphrase.utils import init_gpt2_model
 
 
 class GPT2Generator(object):
-    def __init__(self, model_path, upper_length="eos", beam_size=1, top_p=0.0):
+    def __init__(self, model_path, upper_length="eos", beam_size=1, top_p=0.0, data_dir=None):
         self.model_path = model_path
         self.args = torch.load("{}/training_args.bin".format(self.model_path))
         self.modify_args(upper_length, beam_size, top_p)
@@ -21,12 +21,12 @@ class GPT2Generator(object):
 
         if self.args.global_dense_feature_list != "none":
 
-            self.label_dict, self.reverse_label_dict = get_label_dict(self.args.data_dir)
+            self.label_dict, self.reverse_label_dict = get_label_dict(data_dir)
 
             self.global_dense_features = []
             for gdf in self.args.global_dense_feature_list.split(","):
                 with open(
-                    "{}/{}_dense_vectors.pickle".format(self.args.data_dir, gdf), "rb"
+                    "{}/{}_dense_vectors.pickle".format(data_dir, gdf), "rb"
                 ) as f:
                     vector_data = pickle.load(f)
 
