@@ -233,6 +233,28 @@ def get_logits(model, iteration, generated, segments, style_content_vectors, pas
     past = pred['past_key_values']
     return logits, past
 
+def get_logits_old(model, iteration, generated, segments, style_content_vectors, past):
+    if iteration == 0:
+        if style_content_vectors is None:
+            logits, past = model(
+                input_ids=generated,
+                token_type_ids=segments
+            )
+        else:
+            logits, past = model(
+                input_ids=generated,
+                token_type_ids=segments,
+                prefix_input_vectors=style_content_vectors
+            )
+    else:
+        # used the cached representations to speed up decoding
+        logits, past = model(
+            input_ids=generated[:, -1:],
+            token_type_ids=segments[:, -1:],
+            past=past
+        )
+    return logits, past
+
 
 def sample_sequence(model, length, context, style_content_vectors, segments, eos_token_id,
                     num_samples=1, temperature=1, top_k=0, top_p=0.0, get_scores=False,
