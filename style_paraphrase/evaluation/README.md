@@ -30,6 +30,19 @@ For Formality evaluation from the root folder `style-transfer-paraphrase` run,
 style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh formality_models/model_314 formality_models/model_313 paraphrase_gpt2_large
 ```
 
+### Running Evaluation on Conditional Models (-Multi PP. ablation in Section 5)
+
+1. Make sure to install the local fork of `transformers` provided in this repository ([link](https://github.com/martiansideofthemoon/style-transfer-paraphrase/tree/master/transformers)), since it contains some modifications necessary to run this script.
+
+2. You will need to edit `get_logits` to `get_logits_old` [here](https://github.com/martiansideofthemoon/style-transfer-paraphrase/blob/62e953d833f7d75c826b59d5ab5bf7f2b689ba45/style_paraphrase/utils.py#L281).
+
+3. Download `model_305` from the Shakespeare folder of the Google Drive, and `model_315` from the Formality folder. Run the following commands,
+
+```
+style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh shakespeare_models/model_305 paraphrase_gpt2_large
+style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh formality_models/model_315 paraphrase_gpt2_large
+```
+
 ### Human Evaluation
 
 We used Amazon Mechanical Turk for our evaluation. Please check the [`human/paraphrase_amt_template.html`](human/paraphrase_amt_template.html) and the attached screenshots (`human/crowdsourcing*.png`) for details on setting up the Mechanical Turk jobs.

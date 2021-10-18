@@ -91,7 +91,7 @@ Create a folder in `datasets` which will contain `new_dataset` as `datasets/new_
 python datasets/dataset2bpe.py --dataset datasets/new_dataset
 ```
 
-Note that this process is reversible. To convert a BPE file back into its raw text form: `python datasets/bpe2text.py --input_file <input> --output_file <output>`.
+Note that this process is reversible. To convert a BPE file back into its raw text form: `python datasets/bpe2text.py --input <input> --output <output>`.
 
 2. Next, for converting the BPE codes to `fairseq` binaries and building a label dictionary, first make sure you have downloaded RoBERTa and setup the `$ROBERTA_LARGE` global variable in your `.bashrc` (see "Setup" for more details). Then run,
 
