@@ -30,7 +30,7 @@ For Formality evaluation from the root folder `style-transfer-paraphrase` run,
 style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh formality_models/model_314 formality_models/model_313 paraphrase_gpt2_large
 ```
 
-For running conditional models, please follow the additional steps below ---
+### Running Evaluation on Conditional Models (-Multi PP. ablation in Section 5)
 
 1. Make sure to install the local fork of `transformers` provided in this repository ([link](https://github.com/martiansideofthemoon/style-transfer-paraphrase/tree/master/transformers)), since it contains some modifications necessary to run this script.
 
