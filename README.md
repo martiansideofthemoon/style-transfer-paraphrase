@@ -58,9 +58,11 @@ All datasets will be added to this [Google Drive link](https://drive.google.com/
 
 3. To train the inverse paraphrasers for Formality, check the two scripts in [`style_paraphrase/examples/formality`](style_paraphrase/examples/formality). Note that you will need to email me asking for the preprocessed dataset once you have access to the GYAFC corpus (see instructions in Datasets section).
 
+4. To train models on CDS, please follow step #2 and #5 below in "Custom Datasets".
+
 All the main pretrained models have been added to the [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing).
 
-**Instructions on hyperparameter grid search & automation coming soon!** In the meantime you can find the code in `style_paraphrase/schedule.py`.
+To run a fine-tuning and evaluation script simultaneously with support for hyperparameter tuning, please see the code in `style_paraphrase/schedule.py` and `style_paraphrase/hyperparameters_config.py`. This is customized to SLURM, you might need to mkae minor adjustments for it to work on your cluster. 
 
 ## Classifier Training
 
@@ -110,6 +112,8 @@ python datasets/paraphrase_splits.py --dataset datasets/new_dataset
 ```
 "datasets/new_dataset": BASE_CONFIG
 ```
+
+5. Enter your dataset in the hyperparameters [file](https://github.com/martiansideofthemoon/style-transfer-paraphrase/blob/master/style_paraphrase/hyperparameters_config.py#L23) and run `python style_paraphrase/schedule.py`.
 
 ## Citation
 
