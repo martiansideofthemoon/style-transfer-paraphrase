@@ -29,7 +29,7 @@ DATASET_CONFIG = {
     "datasets/shakespeare_aae_tweets_bible_romantic-poetry_switchboard_coha_3_bins_lyrics_full": BASE_CONFIG,
     "datasets/aae": BASE_CONFIG,
     "datasets/bible": BASE_CONFIG,
-    "datasets/romantic-poetry": BASE_CONFIG,
+    "datasets/poetry": BASE_CONFIG,
     "datasets/switchboard": BASE_CONFIG,
     "datasets/english_tweets": BASE_CONFIG,
     "datasets/lyrics_full": BASE_CONFIG,
