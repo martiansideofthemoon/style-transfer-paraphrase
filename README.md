@@ -4,7 +4,7 @@ This is the official repository accompanying the EMNLP 2020 long paper [Reformul
 
 ## Updates (2021)
 
-* Thanks to [David Dale](https://github.com/avidale), our CoLA fluency classifier is now available in [HuggingFace](https://huggingface.co/cointegrated/roberta-large-cola-krishna2020). They found this classifier had higher correlation with human judgements compared to other CoLA models (details in #36).
+* Thanks to [David Dale](https://github.com/avidale), our CoLA fluency classifier is now available in [HuggingFace](https://huggingface.co/cointegrated/roberta-large-cola-krishna2020). They found this classifier had higher correlation with human judgements compared to other CoLA models (details in [issue #36](https://github.com/martiansideofthemoon/style-transfer-paraphrase/issues/36)).
 
 * Thanks to [Filip Cornell](https://github.com/Filco306), STRAP models are now available on [HuggingFace](https://huggingface.co/filco306) and accepted to [NL-Augmenter](https://github.com/GEM-benchmark/NL-Augmenter/pull/227)!
 
