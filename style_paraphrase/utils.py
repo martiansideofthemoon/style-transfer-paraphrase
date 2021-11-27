@@ -251,7 +251,7 @@ def get_logits_old(model, iteration, generated, segments, style_content_vectors,
         logits, past = model(
             input_ids=generated[:, -1:],
             token_type_ids=segments[:, -1:],
-            past=past
+            past_key_values=past
         )
     return logits, past
 
@@ -273,7 +273,6 @@ def sample_sequence(model, length, context, style_content_vectors, segments, eos
 
     generated = context
     scores = [{"score": 0, "sequence": []} for _ in range(batch_size)]
-
     with torch.no_grad():
         past = None
         past2 = None

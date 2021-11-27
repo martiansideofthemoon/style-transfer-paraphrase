@@ -12,7 +12,7 @@ from style_paraphrase.utils import init_gpt2_model
 
 
 class GPT2Generator(object):
-    def __init__(self, model_path, upper_length="eos", beam_size=1, top_p=0.0, data_dir=None):
+    def __init__(self, model_path, upper_length="same_10", beam_size=1, top_p=0.0, data_dir=None):
         self.model_path = model_path
         self.args = torch.load("{}/training_args.bin".format(self.model_path))
         self.modify_args(upper_length, beam_size, top_p)

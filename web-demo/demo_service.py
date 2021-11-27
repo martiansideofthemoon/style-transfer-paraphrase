@@ -48,7 +48,7 @@ style_mapping = {
     "Tweets": {"model": tweets, "device": 1, "data_file": "english_tweets"},
     "Romantic Poetry": {"model": poetry, "device": 1, "data_file": "romantic_poetry"},
     "Shakespeare": {"model": shakespeare, "device": 2, "data_file": "shakespeare"},
-    "Conversational Speech": {"model": switchboard, "device": 2, "data_file": "switchboard"},
+    "Conversational Speech": {"model": switchboard, "device": 2, "data_file": "switchboard"}
 }
 
 data_style_mapping = {
@@ -117,7 +117,7 @@ def generation_service():
         with torch.cuda.device(0):
             output_paraphrase = paraphraser.generate_batch(input_samples, top_p=data["settings"]["top_p_paraphrase"])[0]
 
-        if data["target_style"] is None:
+        if data["target_style"] is None or data["target_style"] not in style_mapping:
             transferred_output = ["", "", "", "", ""]
         else:
             with torch.cuda.device(style_mapping[data["target_style"]]["device"]):
