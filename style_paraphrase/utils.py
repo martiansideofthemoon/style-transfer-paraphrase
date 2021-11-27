@@ -251,7 +251,7 @@ def get_logits_old(model, iteration, generated, segments, style_content_vectors,
         logits, past = model(
             input_ids=generated[:, -1:],
             token_type_ids=segments[:, -1:],
-            past_key_values=past
+            past=past
         )
     return logits, past
 
