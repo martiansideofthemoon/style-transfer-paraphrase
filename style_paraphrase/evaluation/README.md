@@ -46,3 +46,9 @@ style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh formality_models/mod
 ### Human Evaluation
 
 We used Amazon Mechanical Turk for our evaluation. Please check the [`human/paraphrase_amt_template.html`](human/paraphrase_amt_template.html) and the attached screenshots (`human/crowdsourcing*.png`) for details on setting up the Mechanical Turk jobs.
+
+To access the MTurk results from our runs, see the folder `mturk_evals` in the root directory. You can run the evaluation using,
+
+```
+python style_paraphrase/evaluation/scripts/mturk_performance_agreement.py --input_folder mturk_evals/formality_gold_vs_generated_baseline_he_2020
+```
