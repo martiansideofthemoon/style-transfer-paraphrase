@@ -52,7 +52,7 @@ All datasets will be added to this [Google Drive link](https://drive.google.com/
 3. Formality transfer - Please follow the instructions [here](https://github.com/raosudha89/GYAFC-corpus). Once you have access to the corpus, you could email me ([kalpesh@cs.umass.edu](mailto:kalpesh@cs.umass.edu)) to get access to the preprocessed version. We will also add scripts to preprocess the raw data.
 4. Corpus of Diverse Styles - `datasets/cds`. Samples can be found in [`samples/data_samples`](samples/data_samples). Please cite the [original sources](https://arxiv.org/pdf/2010.05700.pdf#page=24) as well if you plan to use this dataset.
 
-## Training
+## Training / Pretrained Models
 
 1. To train the paraphrase model, run [`style_paraphrase/examples/run_finetune_paraphrase.sh`](style_paraphrase/examples/run_finetune_paraphrase.sh).
 
@@ -62,7 +62,7 @@ All datasets will be added to this [Google Drive link](https://drive.google.com/
 
 4. To train models on CDS, please follow step #2 and #5 below in "Custom Datasets".
 
-All the main pretrained models have been added to the [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing).
+All the main **pretrained models** have been added to the [Google Drive link](https://drive.google.com/drive/folders/12ImHH2kJKw1Vs3rDUSRytP3DZYcHdsZw?usp=sharing).
 
 To run a fine-tuning and evaluation script simultaneously with support for hyperparameter tuning, please see the code in `style_paraphrase/schedule.py` and `style_paraphrase/hyperparameters_config.py`. This is customized to SLURM, you might need to mkae minor adjustments for it to work on your cluster. 
 
