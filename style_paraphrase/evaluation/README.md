@@ -59,6 +59,10 @@ style_paraphrase/evaluation/scripts/eval_shakespeare_baselines.sh outputs/baseli
 
 Transform, delete and generate (https://aclanthology.org/D19-1322) on Shakespeare (results in Appendix A.5 in our paper),
 
+```
+style_paraphrase/evaluation/scripts/eval_shakespeare_baselines.sh outputs/baselines/transform_delete_generate_shakespeare
+```
+
 ### Human Evaluation
 
 We used Amazon Mechanical Turk for our evaluation. Please check the [`human/paraphrase_amt_template.html`](human/paraphrase_amt_template.html) and the attached screenshots (`human/crowdsourcing*.png`) for details on setting up the Mechanical Turk jobs.
