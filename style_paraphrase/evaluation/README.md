@@ -43,6 +43,20 @@ style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh shakespeare_models/m
 style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh formality_models/model_315 paraphrase_gpt2_large
 ```
 
+### Running Evaluation on Baselines
+
+DLSM model on Shakespeare,
+
+```
+style_paraphrase/evaluation/scripts/eval_shakespeare_baselines.sh outputs/baselines/dlsm_shakespeare
+```
+
+UNMT model on Shakespeare,
+
+```
+style_paraphrase/evaluation/scripts/eval_shakespeare_baselines.sh outputs/baselines/unmt_shakespeare
+```
+
 ### Human Evaluation
 
 We used Amazon Mechanical Turk for our evaluation. Please check the [`human/paraphrase_amt_template.html`](human/paraphrase_amt_template.html) and the attached screenshots (`human/crowdsourcing*.png`) for details on setting up the Mechanical Turk jobs.
