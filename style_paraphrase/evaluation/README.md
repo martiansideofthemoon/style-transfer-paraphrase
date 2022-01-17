@@ -63,6 +63,16 @@ Transform, delete and generate (https://aclanthology.org/D19-1322) on Shakespear
 style_paraphrase/evaluation/scripts/eval_shakespeare_baselines.sh outputs/baselines/transform_delete_generate_shakespeare
 ```
 
+For evaluating baselines on formality transfer / GYAFC, first obtain the output files by contacting me at [kalpesh@cs.umass.edu](mailto:kalpesh@cs.umass.edu) (make sure you have access to the GYAFC dataset). Then, run the following commands,
+
+```
+style_paraphrase/evaluation/scripts/eval_formality_baselines.sh outputs/baselines/dlsm_formality
+
+style_paraphrase/evaluation/scripts/eval_formality_baselines.sh outputs/baselines/unmt_formality
+
+style_paraphrase/evaluation/scripts/eval_formality_baselines.sh outputs/baselines/transform_delete_generate_formality
+```
+
 ### Human Evaluation
 
 We used Amazon Mechanical Turk for our evaluation. Please check the [`human/paraphrase_amt_template.html`](human/paraphrase_amt_template.html) and the attached screenshots (`human/crowdsourcing*.png`) for details on setting up the Mechanical Turk jobs.
