@@ -4,7 +4,7 @@ This is the official repository accompanying the EMNLP 2020 long paper [Reformul
 
 ## Updates (2021-22)
 
-* Outputs from baseline models have been added to the Google Drive link. Please see [`style_paraphrase/evaluation/README.md`](style_paraphrase/evaluation/README.md) for a script to run evaluation on baselines.
+* Outputs from baseline models ([DLSM](https://arxiv.org/abs/2002.03912); [UNMT](https://arxiv.org/abs/1811.00552); [Transforming Delete, Retrieve, Generate](https://arxiv.org/abs/1908.09368)) have been added to the Google Drive link. Please see [`style_paraphrase/evaluation/README.md`](style_paraphrase/evaluation/README.md) for a script to run evaluation on baselines.
 
 * Thanks to [David Dale](https://github.com/avidale), our CoLA fluency classifier is now available in [HuggingFace](https://huggingface.co/cointegrated/roberta-large-cola-krishna2020). They found this classifier had higher correlation with human judgements compared to other CoLA models (details in [issue #36](https://github.com/martiansideofthemoon/style-transfer-paraphrase/issues/36)).
 
