@@ -46,8 +46,6 @@ for combo in combinations:
     # Write the scheduler scripts
     with open("style_paraphrase/run_finetune_gpt2_template.sh", 'r') as f:
         schedule_script = f.read()
-    with open("style_paraphrase/run_generation_gpt2_template.sh", 'r') as f:
-        generation_script = f.read()
     with open("style_paraphrase/run_evaluate_gpt2_template.sh", 'r') as f:
         evaluate_script = f.read()
 
@@ -73,25 +71,16 @@ for combo in combinations:
             schedule_script = schedule_script.replace("{%s}" % k, str(v))
 
     for k, v in combo.items():
-        if "{%s}" % k in generation_script:
-            generation_script = generation_script.replace("{%s}" % k, str(v))
-
-    for k, v in combo.items():
         if "{%s}" % k in evaluate_script:
             evaluate_script = evaluate_script.replace("{%s}" % k, str(v))
 
     schedule_script += "\n"
-    generation_script += "\n"
     evaluate_script += "\n"
 
     # Write schedule script
     script_name = 'style_paraphrase/slurm-schedulers/schedule_%d.sh' % run_id
     with open(script_name, 'w') as f:
         f.write(schedule_script)
-
-    generation_script_name = 'style_paraphrase/slurm-schedulers/generate_%d.sh' % run_id
-    with open(generation_script_name, 'w') as f:
-        f.write(generation_script)
 
     evaluate_script_name = 'style_paraphrase/slurm-schedulers/evaluate_%d.sh' % run_id
     with open(evaluate_script_name, 'w') as f:
@@ -102,7 +91,6 @@ for combo in combinations:
 
     # Making files executable
     subprocess.check_output('chmod +x %s' % script_name, shell=True)
-    subprocess.check_output('chmod +x %s' % generation_script_name, shell=True)
     subprocess.check_output('chmod +x %s' % evaluate_script_name, shell=True)
 
     # Update experiment logs
