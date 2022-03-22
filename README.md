@@ -119,6 +119,17 @@ python datasets/paraphrase_splits.py --dataset datasets/new_dataset
 
 5. Enter your dataset in the hyperparameters [file](https://github.com/martiansideofthemoon/style-transfer-paraphrase/blob/master/style_paraphrase/hyperparameters_config.py#L23) and run `python style_paraphrase/schedule.py`.
 
+### Custom Paraphrase data
+
+You can preprocess a TSV data of sentence pairs to a compatible format using,
+
+```
+python datasets/prepare_paraphrase_data.py \
+    --input_file input.tsv \
+    --output_folder datasets/custom_paraphrase_data \
+    --train_fraction 0.95
+```
+
 ## Citation
 
 If you find this repository useful, please cite us:

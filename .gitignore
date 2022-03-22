@@ -59,3 +59,6 @@ outputs/formality_backup
 outputs/baselines/dlsm_formality
 outputs/baselines/unmt_formality
 outputs/baselines/transform_delete_generate_formality
+
+input.tsv
+requirements-old.txt
