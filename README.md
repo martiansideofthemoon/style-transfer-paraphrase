@@ -89,7 +89,7 @@ Please check [`style_paraphrase/evaluation/README.md`](style_paraphrase/evaluati
 
 ## Custom Datasets
 
-Create a folder in `datasets` which will contain `new_dataset` as `datasets/new_dataset`. Paste your plaintext train/dev/test splits into this folder as `train.txt`, `dev.txt`, `test.txt`. Use one instance per line (note that the model truncates sequences longer than 50 subwords). Add equal length `train.label`, `dev.label`, `test.label` files which contain the style label of the corresponding instance.
+Create a folder in `datasets` which will contain `new_dataset` as `datasets/new_dataset`. Paste your plaintext train/dev/test splits into this folder as `train.txt`, `dev.txt`, `test.txt`. Use one instance per line (note that the model truncates sequences longer than 50 subwords). Add `train.label`, `dev.label`, `test.label` files (with same number of lines as `train.txt`, `dev.txt`, `test.txt`). These files will contain the style label of the corresponding instance. See [this folder](https://drive.google.com/drive/folders/1a7SS3n9Ds3PEcDH7o3rZnWr-AAkVKYZw?usp=sharing) for examples of label files.
 
 1. To convert a plaintext dataset into it's BPE form run the command,
 
