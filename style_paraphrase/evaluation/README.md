@@ -27,7 +27,7 @@ style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh shakespeare_models/m
 For Formality evaluation from the root folder `style-transfer-paraphrase` run,
 
 ```
-style_paraphrase/evaluation/scripts/evaluate_shakespeare.sh formality_models/model_314 formality_models/model_313 paraphrase_gpt2_large
+style_paraphrase/evaluation/scripts/evaluate_formality.sh formality_models/model_314 formality_models/model_313 paraphrase_gpt2_large
 ```
 
 ### Running Evaluation on Conditional Models (-Multi PP. ablation in Section 5)
